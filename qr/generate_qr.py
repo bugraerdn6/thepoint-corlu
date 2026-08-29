@@ -15,6 +15,6 @@ for name, url in targets.items():
     )
     qr.add_data(url)
     qr.make(fit=True)
-    img = qr.make_image(fill_color="#14100d", back_color="#ffffff")
+    img = qr.make_image(fill_color="#333c22", back_color="#ffffff")
     img.save(f"{name}.png")
     print(f"saved {name}.png -> {url}")

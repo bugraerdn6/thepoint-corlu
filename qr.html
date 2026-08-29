@@ -4,26 +4,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Point | QR Kodları</title>
+<link rel="icon" type="image/jpeg" href="images/favicon-180.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #14100d; --gold: #c8a15b; --gold-bright: #e3bd74;
-    --cream: #f3ead9; --muted: #a89985; --line: #35291f;
+    --cream: #f2ead4; --cream-panel: #eadfc0; --grid-line: #d9cca3;
+    --olive: #5c6a3f; --olive-dark: #333c22; --olive-deep: #2a3019;
+    --terracotta: #c1622f; --terracotta-bright: #d97a44;
+    --ink: #2b2718; --muted: #766f56;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: var(--bg); color: var(--cream);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-color: var(--cream);
+    color: var(--ink);
     font-family: 'Jost', sans-serif; font-weight: 300;
-    padding: 3rem 1.5rem 5rem;
+    padding: 3rem 1.25rem 5rem;
   }
   h1 {
     font-family: 'Cormorant Garamond', serif;
-    text-align: center; font-size: 2.6rem; color: var(--gold-bright);
-    letter-spacing: 0.1em;
+    text-align: center; font-size: clamp(1.9rem, 7vw, 2.6rem); color: var(--olive-dark);
+    letter-spacing: 0.06em;
   }
-  .sub { text-align: center; color: var(--muted); margin-top: 0.5rem; margin-bottom: 3rem; }
+  h1 span { color: var(--terracotta); }
+  .sub { text-align: center; color: var(--muted); margin-top: 0.6rem; margin-bottom: 3rem; font-style: italic; font-family: 'Cormorant Garamond', serif; }
   .cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -32,8 +41,8 @@
     margin: 0 auto;
   }
   .card {
-    background: #1f1915;
-    border: 1px solid var(--line);
+    background: var(--cream-panel);
+    border: 1.5px solid var(--olive);
     border-radius: 14px;
     padding: 1.75rem;
     text-align: center;
@@ -44,30 +53,32 @@
     border-radius: 8px;
     background: #fff;
     padding: 12px;
+    border: 1px solid var(--grid-line);
   }
   .card h2 {
     font-family: 'Cormorant Garamond', serif;
-    color: var(--gold); font-size: 1.4rem;
+    color: var(--terracotta); font-size: 1.4rem;
     margin-top: 1.25rem;
   }
   .card p { color: var(--muted); font-size: 0.85rem; margin-top: 0.3rem; word-break: break-all; }
   .card a.dl {
-    display: inline-block; margin-top: 1rem;
-    border: 1px solid var(--gold); border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-top: 1rem; min-height: 44px;
+    border: 1.5px solid var(--olive-dark); border-radius: 999px;
     padding: 0.5rem 1.2rem; font-size: 0.8rem;
-    color: var(--cream); text-decoration: none;
+    color: var(--olive-dark); text-decoration: none;
   }
   @media print {
     body { background: #fff; color: #000; }
     .card { border: 1px solid #ccc; break-inside: avoid; }
     .card a.dl { display: none; }
-    h1, .card h2 { color: #000; }
+    h1, .card h2, h1 span { color: #000; }
     .sub, .card p { color: #555; }
   }
 </style>
 </head>
 <body>
-  <h1>THE POINT — QR Kodları</h1>
+  <h1>THE <span>POINT</span> — QR Kodları</h1>
   <p class="sub">Masalara / girişe basmak için — tarayıcıdan sağ tık &gt; "Yazdır" ile çıktı alabilirsin.</p>
 
   <div class="cards">
