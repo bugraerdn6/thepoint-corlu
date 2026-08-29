@@ -194,6 +194,59 @@ img { max-width: 100%; display: block; }
   margin-bottom: 2rem;
 }
 
+.ig-slideshow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 2rem;
+}
+
+.ig-slideshow-frame {
+  position: relative;
+  width: min(260px, 62vw);
+  aspect-ratio: 506 / 900;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(51, 60, 34, 0.14);
+  box-shadow:
+    0 2px 5px rgba(42, 48, 25, 0.12),
+    0 14px 28px -12px rgba(42, 48, 25, 0.4);
+}
+
+.ig-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.ig-slide.is-active { opacity: 1; }
+
+.ig-slideshow-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ig-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: none;
+  background: var(--grid-line);
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.ig-dot.is-active {
+  background: var(--terracotta);
+  transform: scale(1.35);
+}
+
 .ig-callout {
   display: flex;
   flex-direction: column;

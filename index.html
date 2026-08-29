@@ -43,6 +43,23 @@
     <p class="eyebrow section-eyebrow">Menü</p>
     <h2>Kokteyller</h2>
 
+    <div class="ig-slideshow" aria-label="Kokteyl fotoğrafları">
+      <div class="ig-slideshow-frame">
+        <img src="images/cocktails/c1.jpg" alt="The Point kokteyl" class="ig-slide is-active" loading="eager">
+        <img src="images/cocktails/c2.jpg" alt="The Point kokteyl" class="ig-slide">
+        <img src="images/cocktails/c3.jpg" alt="The Point kokteyl" class="ig-slide">
+        <img src="images/cocktails/c4.jpg" alt="The Point kokteyl" class="ig-slide">
+        <img src="images/cocktails/c5.jpg" alt="The Point kokteyl" class="ig-slide">
+      </div>
+      <div class="ig-slideshow-dots">
+        <button class="ig-dot is-active" data-i="0" aria-label="1. fotoğraf"></button>
+        <button class="ig-dot" data-i="1" aria-label="2. fotoğraf"></button>
+        <button class="ig-dot" data-i="2" aria-label="3. fotoğraf"></button>
+        <button class="ig-dot" data-i="3" aria-label="4. fotoğraf"></button>
+        <button class="ig-dot" data-i="4" aria-label="5. fotoğraf"></button>
+      </div>
+    </div>
+
     <a class="ig-callout" href="https://www.instagram.com/thepoint.corlu" target="_blank" rel="noopener">
       <span class="ig-callout-kicker">Etiketle, Kazan</span>
       <span class="ig-callout-main">Kokteylini fotoğrafla, <strong>@thepoint.corlu</strong>'yu etiketle</span>
@@ -196,6 +213,35 @@
 </footer>
 
 <a href="#menu-nav" class="back-top" aria-label="Menüye dön">Menü</a>
+
+<script>
+(function () {
+  var slides = document.querySelectorAll('.ig-slide');
+  var dots = document.querySelectorAll('.ig-dot');
+  if (!slides.length) return;
+  var i = 0;
+  var timer;
+
+  function show(n) {
+    slides[i].classList.remove('is-active');
+    dots[i].classList.remove('is-active');
+    i = (n + slides.length) % slides.length;
+    slides[i].classList.add('is-active');
+    dots[i].classList.add('is-active');
+  }
+
+  function restart() {
+    clearInterval(timer);
+    timer = setInterval(function () { show(i + 1); }, 3500);
+  }
+
+  dots.forEach(function (dot, idx) {
+    dot.addEventListener('click', function () { show(idx); restart(); });
+  });
+
+  restart();
+})();
+</script>
 
 </body>
 </html>
