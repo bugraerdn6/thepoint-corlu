@@ -1,0 +1,222 @@
+:root {
+  --bg: #14100d;
+  --bg-alt: #1b1512;
+  --panel: #1f1915;
+  --line: #35291f;
+  --gold: #c8a15b;
+  --gold-bright: #e3bd74;
+  --cream: #f3ead9;
+  --muted: #a89985;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'Jost', sans-serif;
+  font-weight: 300;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* Hero */
+.hero {
+  padding: 4.5rem 1.5rem 3rem;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at top, rgba(200,161,91,0.12), transparent 60%),
+    var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.hero-inner { max-width: 640px; margin: 0 auto; }
+
+.eyebrow {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  font-size: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.hero h1 {
+  font-size: clamp(3rem, 12vw, 5.5rem);
+  color: var(--cream);
+  line-height: 0.95;
+}
+
+.hero h1 span { color: var(--gold-bright); }
+
+.tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.25rem;
+  color: var(--gold);
+  margin-top: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+.hero-links {
+  margin-top: 2.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.pill {
+  padding: 0.7rem 1.6rem;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  transition: background 0.2s, color 0.2s;
+}
+
+.pill:hover { background: var(--gold); color: var(--bg); }
+
+.pill-gold {
+  background: var(--gold);
+  color: var(--bg);
+}
+
+.pill-gold:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
+
+/* Nav */
+.menu-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 1rem 1rem;
+  background: rgba(20, 16, 13, 0.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.menu-nav a { color: var(--muted); transition: color 0.2s; }
+.menu-nav a:hover { color: var(--gold-bright); }
+
+/* Sections */
+.menu-section {
+  padding: 3.5rem 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  scroll-margin-top: 4rem;
+}
+
+.menu-section.alt { background: var(--bg-alt); max-width: 100%; }
+.menu-section.alt > * { max-width: 1000px; margin-left: auto; margin-right: auto; }
+
+.menu-section h2 {
+  font-size: 2.2rem;
+  color: var(--gold-bright);
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+
+.section-sub {
+  text-align: center;
+  color: var(--muted);
+  font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
+  margin-bottom: 2rem;
+}
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2.5rem;
+  margin-top: 2.5rem;
+}
+
+.cat-grid.two-col { grid-template-columns: repeat(2, minmax(200px, 1fr)); max-width: 600px; margin-left: auto; margin-right: auto; }
+
+.cat h3 {
+  color: var(--gold);
+  font-size: 1.3rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem 2.5rem;
+  margin-top: 1rem;
+}
+
+.item { padding: 0.6rem 0; border-bottom: 1px dashed var(--line); }
+.cat .item:last-child, .list-grid .item:last-child { border-bottom: none; }
+
+.item h4 {
+  color: var(--cream);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.item p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-top: 0.15rem;
+}
+
+.cat .item p { margin-top: 0; }
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 3rem 1.5rem 6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+
+.footer-name {
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--gold-bright);
+  font-size: 1.6rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 1rem;
+}
+
+footer a { text-decoration: underline; text-underline-offset: 3px; }
+
+.footer-links {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.back-top {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  background: var(--gold);
+  color: var(--bg);
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+}
