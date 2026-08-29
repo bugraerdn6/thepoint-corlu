@@ -4,7 +4,7 @@ from qrcode.constants import ERROR_CORRECT_H
 targets = {
     "menu": "https://bugraerdn6.github.io/thepoint-corlu/",
     "instagram": "https://www.instagram.com/thepoint.corlu",
-    "google-yorum": "https://search.google.com/local/writereview?placeid=3169288846046193105",
+    "google-yorum": "https://www.google.com/maps?cid=3169288846046193105",
 }
 
 for name, url in targets.items():
