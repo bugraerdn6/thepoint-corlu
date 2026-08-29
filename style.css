@@ -194,6 +194,64 @@ img { max-width: 100%; display: block; }
   margin-bottom: 2rem;
 }
 
+.ig-callout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: center;
+  margin: 1.75rem auto 0;
+  max-width: 460px;
+  padding: 1.25rem 1.75rem;
+  border: 1px dashed var(--terracotta);
+  border-radius: 10px;
+  background: rgba(193, 98, 47, 0.06);
+  text-decoration: none;
+  transition: background 0.2s, border-style 0.2s, transform 0.2s;
+}
+
+.ig-callout:hover {
+  background: rgba(193, 98, 47, 0.11);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+
+.ig-callout-kicker {
+  font-family: 'Jost', sans-serif;
+  font-weight: 600;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+}
+
+.ig-callout-main {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.ig-callout-main strong {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--olive-dark);
+}
+
+.ig-callout-prize {
+  font-family: 'Jost', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cream);
+  background: var(--terracotta);
+  padding: 0.3rem 1rem;
+  border-radius: 999px;
+  margin-top: 0.4rem;
+}
+
 .cat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
