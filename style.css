@@ -330,6 +330,97 @@ footer a { text-decoration: underline; text-underline-offset: 3px; opacity: 1; }
   align-items: center;
 }
 
+/* Premium demo treatment — scoped to #kokteyller only for now */
+.premium-demo .section-eyebrow {
+  margin-bottom: 0.5rem;
+}
+
+.premium-demo h2 {
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.premium-demo h2::after {
+  width: 34px;
+  height: 1px;
+  background: var(--terracotta);
+}
+
+.premium-demo .section-sub {
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.premium-demo .cat-grid { gap: 3rem 3rem; margin-top: 3rem; }
+
+.premium-demo .cat {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.premium-demo .cat h3 {
+  display: block;
+  border-bottom: none;
+  text-transform: uppercase;
+  font-family: 'Jost', sans-serif;
+  font-weight: 500;
+  font-size: 0.82rem;
+  letter-spacing: 0.24em;
+  color: var(--olive-dark);
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.premium-demo .cat h3::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--terracotta) 0%, var(--terracotta) 28px, var(--grid-line) 28px, var(--grid-line) 100%);
+}
+
+.premium-demo .cat-price {
+  border: none;
+  padding: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+  font-weight: 500;
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.premium-demo .item {
+  border-bottom: 1px solid rgba(51, 60, 34, 0.12);
+  padding: 1rem 0;
+}
+
+.premium-demo .item:last-child { border-bottom: none; }
+
+.premium-demo .item h4 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.premium-demo .item p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
 @media (max-width: 420px) {
   .hero { padding: 2.25rem 1rem 2rem; }
   .menu-section { padding: 2.25rem 1rem; }
