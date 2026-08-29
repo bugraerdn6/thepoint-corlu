@@ -9,8 +9,8 @@
   --sage: #b7c68f;
   --ink: #2b2718;
   --muted: #766f56;
-  --table: #23200f;
-  --table-light: #322c19;
+  --table: #332c1a;
+  --table-light: #4a4025;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,7 +20,6 @@ html { scroll-behavior: smooth; }
 body {
   background-color: var(--table);
   background-image: radial-gradient(ellipse 900px 700px at 50% 0%, var(--table-light), var(--table) 70%);
-  background-attachment: fixed;
   color: var(--ink);
   font-family: 'Jost', sans-serif;
   font-weight: 300;
