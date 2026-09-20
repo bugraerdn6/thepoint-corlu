@@ -225,26 +225,42 @@ img { max-width: 100%; display: block; }
 
 .ig-slide.is-active { opacity: 1; }
 
-.ig-slideshow-dots {
-  display: flex;
-  gap: 0.5rem;
+.ig-slide-counter {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
 }
 
-.ig-dot {
-  width: 7px;
-  height: 7px;
+.ig-slide-counter .ig-slide-current {
+  color: var(--terracotta);
+  font-weight: 600;
+}
+
+.ig-slide-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: none;
-  background: var(--grid-line);
-  padding: 0;
+  background: rgba(42, 48, 25, 0.45);
+  color: var(--cream);
+  font-size: 1.2rem;
+  line-height: 1;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  z-index: 2;
 }
 
-.ig-dot.is-active {
-  background: var(--terracotta);
-  transform: scale(1.35);
-}
+.ig-slide-nav:hover { background: rgba(42, 48, 25, 0.7); }
+
+.ig-slide-prev { left: 8px; }
+.ig-slide-next { right: 8px; }
 
 .ig-callout {
   display: flex;

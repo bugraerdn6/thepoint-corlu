@@ -49,18 +49,45 @@
     <div class="ig-slideshow" aria-label="Kokteyl fotoğrafları">
       <div class="ig-slideshow-frame">
         <img src="images/cocktails/c1.jpg" alt="The Point kokteyl" class="ig-slide is-active" loading="eager">
-        <img src="images/cocktails/c2.jpg" alt="The Point kokteyl" class="ig-slide">
-        <img src="images/cocktails/c3.jpg" alt="The Point kokteyl" class="ig-slide">
-        <img src="images/cocktails/c4.jpg" alt="The Point kokteyl" class="ig-slide">
-        <img src="images/cocktails/c5.jpg" alt="The Point kokteyl" class="ig-slide">
+        <img src="images/cocktails/c2.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c3.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c4.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c5.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c6.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c7.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c8.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c9.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c10.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c11.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c12.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c13.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c14.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c15.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c16.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c17.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c18.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c19.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c20.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c21.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c22.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c23.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c24.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c25.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c26.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c27.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c28.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c29.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c30.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c31.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c32.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c33.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c34.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c35.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <img src="images/cocktails/c36.jpg" alt="The Point kokteyl" class="ig-slide" loading="lazy">
+        <button class="ig-slide-nav ig-slide-prev" aria-label="Önceki fotoğraf">&#8249;</button>
+        <button class="ig-slide-nav ig-slide-next" aria-label="Sonraki fotoğraf">&#8250;</button>
       </div>
-      <div class="ig-slideshow-dots">
-        <button class="ig-dot is-active" data-i="0" aria-label="1. fotoğraf"></button>
-        <button class="ig-dot" data-i="1" aria-label="2. fotoğraf"></button>
-        <button class="ig-dot" data-i="2" aria-label="3. fotoğraf"></button>
-        <button class="ig-dot" data-i="3" aria-label="4. fotoğraf"></button>
-        <button class="ig-dot" data-i="4" aria-label="5. fotoğraf"></button>
-      </div>
+      <p class="ig-slide-counter"><span class="ig-slide-current">1</span> / <span class="ig-slide-total">36</span></p>
     </div>
 
     <a class="ig-callout" href="https://www.instagram.com/thepoint.corlu" target="_blank" rel="noopener">
@@ -418,17 +445,18 @@
 <script>
 (function () {
   var slides = document.querySelectorAll('.ig-slide');
-  var dots = document.querySelectorAll('.ig-dot');
+  var counter = document.querySelector('.ig-slide-current');
+  var prevBtn = document.querySelector('.ig-slide-prev');
+  var nextBtn = document.querySelector('.ig-slide-next');
   if (!slides.length) return;
   var i = 0;
   var timer;
 
   function show(n) {
     slides[i].classList.remove('is-active');
-    dots[i].classList.remove('is-active');
     i = (n + slides.length) % slides.length;
     slides[i].classList.add('is-active');
-    dots[i].classList.add('is-active');
+    if (counter) counter.textContent = i + 1;
   }
 
   function restart() {
@@ -436,9 +464,8 @@
     timer = setInterval(function () { show(i + 1); }, 3500);
   }
 
-  dots.forEach(function (dot, idx) {
-    dot.addEventListener('click', function () { show(idx); restart(); });
-  });
+  if (prevBtn) prevBtn.addEventListener('click', function () { show(i - 1); restart(); });
+  if (nextBtn) nextBtn.addEventListener('click', function () { show(i + 1); restart(); });
 
   restart();
 })();
