@@ -9,7 +9,7 @@ const REVEAL_MS = 5000;
 const LIE_WAIT_MS = 8000;
 const MAXLEN = 80;
 
-const lieKey = (c) => `tp_lie_${c.code}_${c.room.startedAt}`;
+const lieKey = (c) => `tp_lie_${c.code}_${c.room.runId || c.room.startedAt}`;
 
 function roundScore(room, r) {
   const g = room.g;

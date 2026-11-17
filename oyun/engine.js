@@ -11,6 +11,10 @@ import { state, app, esc, toast, clearSubs, renderHome, addPoints, displayName }
 import { GAMES } from "./games/index.js";
 
 const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+// Her oyun başlangıcında sabit, rastgele kimlik. startedAt sunucu saatiyle sonradan değişebildiği için
+// telefondaki gizli bilgiler ve oyun hafızası buna bağlanır.
+const newRunId = () => [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, "0")).join("");
+export const runOf = (room) => room?.runId || room?.startedAt;
 export const REACTIONS = ["👏", "😂", "🔥", "😮", "🍸", "GG"];
 let R = null; // aktif oda
 
@@ -127,9 +131,9 @@ export async function leave(silent) {
 function ctx() {
   const room = R.room;
   // her yeni oyun başlangıcında yerel durumu sıfırla
-  if (R.localKey !== room.startedAt) {
+  if (R.localKey !== runOf(room)) {
     R.timers.forEach(clearTimeout); R.timers = [];
-    R.local = {}; R.localKey = room.startedAt;
+    R.local = {}; R.localKey = runOf(room);
   }
   return {
     room, g: room.g || {}, inputs: room.in || {},
@@ -283,7 +287,7 @@ function renderLobby(room) {
     startBot.disabled = true;
     try {
       const g = await game.start({ ...ctx(), players, vsBot: true });
-      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp() });
+      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp(), runId: newRunId() });
     } catch (e) { console.error(e); toast("Başlatılamadı."); startBot.disabled = false; }
   };
   if (start) start.onclick = async () => {
@@ -296,7 +300,7 @@ function renderLobby(room) {
         if (players.length >= 2 && (!b.count.A || !b.count.B)) { toast("İki takımda da en az 1 kişi olmalı."); start.disabled = false; return; }
       }
       const g = await game.start({ ...ctx(), players });
-      await update(R.roomRef, { ...patch, state: "play", g, in: null, rx: null, startedAt: serverTimestamp() });
+      await update(R.roomRef, { ...patch, state: "play", g, in: null, rx: null, startedAt: serverTimestamp(), runId: newRunId() });
     } catch (e) { console.error(e); toast("Başlatılamadı."); start.disabled = false; }
   };
 }
@@ -386,12 +390,12 @@ async function renderDone(room) {
     rematch.disabled = true;
     try {
       const g = await game.start({ ...ctx(), players: playerList(R.room), vsBot });
-      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp() });
+      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp(), runId: newRunId() });
     } catch (e) { console.error(e); toast("Başlatılamadı."); rematch.disabled = false; }
   };
 
   if (!multi) return;
-  const key = `tp_award_${R.code}_${room.startedAt}`;
+  const key = `tp_award_${R.code}_${runOf(room)}`;
   if (R.awardedKey === key) return;
   R.awardedKey = key;
   const el = () => document.getElementById("award");

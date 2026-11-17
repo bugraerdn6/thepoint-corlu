@@ -8,7 +8,7 @@ const SHOT_MS = 30000;
 const REPLY_WAIT_MS = 20000;
 const END_SHOW_MS = 7000;
 
-const key = (c) => `tp_fleet_${c.code}_${c.room.startedAt}`;
+const key = (c) => `tp_fleet_${c.code}_${c.room.runId || c.room.startedAt}`;
 
 function randomFleet() {
   for (;;) {
@@ -118,8 +118,8 @@ export default {
       const rdy = document.getElementById("rdy");
       if (rdy) rdy.onclick = sendReady;
       // süre dolarsa otomatik hazır
-      if (!iReady && local.autoReady !== c.room.startedAt) {
-        local.autoReady = c.room.startedAt;
+      if (!iReady && local.autoReady !== (c.room.runId || c.room.startedAt)) {
+        local.autoReady = (c.room.runId || c.room.startedAt);
         c.timer(sendReady, Math.max(0, g.endAt - c.now() - 1500));
       }
       bar(c, "place", g.endAt, PLACE_MS);

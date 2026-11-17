@@ -15,7 +15,7 @@ const BETWEEN_GAMES_MS = 3500;
 
 const enc = (moves) => (moves.length ? moves.map((m) => `${m.from}-${m.to}-${m.d}`).join(",") : "-");
 const dec = (s) => (!s || s === "-" ? [] : String(s).split(",").map((x) => { const [from, to, d] = x.split("-").map(Number); return { from, to, d }; }));
-const lsKey = (c, key) => `tp_tv_${c.code}_${c.room.startedAt}_${key}`;
+const lsKey = (c, key) => `tp_tv_${c.code}_${c.room.runId || c.room.startedAt}_${key}`;
 const valCache = new Map();
 // Girdiler bir kez yazılır (sonradan değişmez), bu yüzden tamamlanan turlar güvenle önbelleğe alınır:
 // her ekran yenilemesinde maçı baştan hesaplamak yerine kaldığı yerden devam eder.
@@ -33,7 +33,7 @@ function validateCached(v, dl, mv) {
 // ---------- tek oyunu girdilerden yeniden kur ----------
 function replayGame(room, gm, startAt) {
   const g = room.g;
-  const ck = `${room.startedAt}|${g.p.join(",")}|${gm}`;
+  const ck = `${room.runId || room.startedAt}|${g.p.join(",")}|${gm}`;
   if (doneGames.has(ck)) return doneGames.get(ck);
   const res = replayGameInner(room, gm, startAt, ck);
   if (res.over) { if (doneGames.size > 200) doneGames.clear(); doneGames.set(ck, res); }

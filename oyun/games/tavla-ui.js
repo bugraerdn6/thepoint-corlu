@@ -244,7 +244,7 @@ export function renderTavla(c, M, H2) {
 
   const st = M.cur;
   const real = st.real || R.initialReal();
-  const gameKey = `${c.room.startedAt}:${st.gm}`;
+  const gameKey = `${c.room.runId || c.room.startedAt}:${st.gm}`;
   if (local.gameKey !== gameKey) { local.gameKey = gameKey; local.prevReal = null; local.animKey = null; local.flags = {}; }
   local.flags = local.flags || {};
 

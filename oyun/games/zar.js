@@ -7,7 +7,7 @@ const REVEAL_MS = 15000;
 const RESULT_MS = 6000;
 const FACE = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 
-const lsKey = (c, r) => `tp_dice_${c.code}_${c.room.startedAt}_${r}`;
+const lsKey = (c, r) => `tp_dice_${c.code}_${c.room.runId || c.room.startedAt}_${r}`;
 
 async function sha(s) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
