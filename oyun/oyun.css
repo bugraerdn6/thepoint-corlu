@@ -700,3 +700,32 @@ body:has(.arena) .tabbar, body:has(.modal) .tabbar { display: none; }
 .flipcard.anim .fb { animation: flipOut 0.6s var(--d) both; }
 @keyframes flipIn { from { transform: rotateY(-180deg); } to { transform: rotateY(0deg); } }
 @keyframes flipOut { from { transform: rotateY(0deg); } to { transform: rotateY(180deg); } }
+
+/* ===== Dörtlü Bağla v2 ===== */
+.c4head { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: .3rem; }
+.c4head .vs { font-family: 'Cormorant Garamond', serif; font-weight: 700; color: var(--terracotta); }
+.c4pl { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--cream); font-weight: 500; font-size: .9rem; transition: box-shadow .2s; }
+.c4pl.on { box-shadow: 0 0 0 2px var(--terracotta); }
+.c4pl i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+.c4pl i.d0, .disc.d0, .c4ghost.d0 { background: radial-gradient(circle at 35% 30%, #f0a070, #c1622f 55%, #8f3f1c); }
+.c4pl i.d1, .disc.d1, .c4ghost.d1 { background: radial-gradient(circle at 35% 30%, #fff1c2, #e8b04a 55%, #a87418); }
+.c4board { position: relative; display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin: .6rem auto 0; max-width: 360px; padding: 34px 6px 6px; border-radius: 14px;
+  background: linear-gradient(160deg, #3a4527, #262c19); box-shadow: inset 0 2px 0 rgba(255,255,255,.08), 0 12px 24px -10px rgba(0,0,0,.6); }
+.c4col { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 0; border: 0; background: transparent; border-radius: 10px; cursor: pointer; }
+.c4col:disabled { cursor: default; }
+.c4board.my .c4col:not(:disabled):hover, .c4board.my .c4col:not(:disabled):active { background: rgba(232, 176, 74, .16); }
+.c4ghost { position: absolute; top: -30px; left: 50%; width: 70%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%; opacity: 0; transition: opacity .15s; }
+.c4board.my .c4col:not(:disabled):hover .c4ghost, .c4board.my .c4col:not(:disabled):active .c4ghost { opacity: .85; }
+.c4board.my .c4col:not(:disabled) .c4ghost { opacity: .22; }
+.c4hole { position: relative; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #1a1f12, #11150b); box-shadow: inset 0 3px 5px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.06); overflow: visible; }
+.disc { position: absolute; inset: 7%; border-radius: 50%; box-shadow: inset 0 -3px 4px rgba(0,0,0,.25), inset 0 2px 3px rgba(255,255,255,.35), 0 2px 3px rgba(0,0,0,.4); }
+.disc::after { content: ""; position: absolute; inset: 22%; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.25); }
+.disc.drop { animation: c4drop calc(260ms + var(--fall) * 45ms) cubic-bezier(.45,0,.9,.5) both, c4bounce .25s calc(260ms + var(--fall) * 45ms) ease-out; z-index: 2; }
+@keyframes c4drop { from { transform: translateY(calc(var(--fall) * -112% - 40%)); } to { transform: translateY(0); } }
+@keyframes c4bounce { 0% { transform: translateY(0); } 40% { transform: translateY(-14%); } 100% { transform: translateY(0); } }
+.disc.win { animation: c4win 1s ease-in-out infinite; z-index: 3; }
+@keyframes c4win { 50% { box-shadow: 0 0 0 3px #fff6, 0 0 16px 4px #ffd77a, inset 0 -3px 4px rgba(0,0,0,.25); transform: scale(1.06); } }
+.c4line { position: absolute; left: 6px; right: 6px; top: 34px; bottom: 6px; width: calc(100% - 12px); height: calc(100% - 40px); pointer-events: none; z-index: 4; }
+.c4line line { stroke: #ffd77a; stroke-width: 6; stroke-linecap: round; opacity: .85; stroke-dasharray: 400; stroke-dashoffset: 400; animation: c4lineDraw .6s .5s forwards; filter: drop-shadow(0 0 4px #ffd77a); }
+@keyframes c4lineDraw { to { stroke-dashoffset: 0; } }
+.disc.drop.win { animation: c4drop calc(260ms + var(--fall) * 45ms) cubic-bezier(.45,0,.9,.5) both, c4win 1s calc(500ms + var(--fall) * 45ms) ease-in-out infinite; }

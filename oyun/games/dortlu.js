@@ -1,5 +1,7 @@
 // 🔴 Dörtlü Bağla — 2 kişi, 7×6 tahta, 4 taşı yan yana/üst üste/çapraz getiren kazanır.
 // Tahta, hamle listesinden her telefonda yeniden kurulur; sadece sırası gelenin hamlesi sayılır.
+import { sfx, buzz, unlock } from "../sound.js";
+import { burst } from "./cards.js";
 const COLS = 7, ROWS = 6;
 const MOVE_MS = 30000;
 
@@ -39,6 +41,13 @@ function winAt(b, r, c) {
   return null;
 }
 
+// kazanan 4 taşın üstünden geçen çizgi (tahta üstünde, yüzde koordinatla)
+function winLine(line) {
+  const pts = line.slice().sort((a, b) => a[1] - b[1] || a[0] - b[0]);
+  const [r1, c1] = pts[0], [r2, c2] = pts[pts.length - 1];
+  return `<svg class="c4line" viewBox="0 0 ${COLS} ${ROWS}" preserveAspectRatio="none"><line x1="${c1 + 0.5}" y1="${r1 + 0.5 + 0.08}" x2="${c2 + 0.5}" y2="${r2 + 0.5 + 0.08}" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
 const validCols = (board) => [...Array(COLS).keys()].filter((c) => board[0][c] === null);
 
 export default {
@@ -61,29 +70,47 @@ export default {
     const myIdx = g.p.indexOf(c.me);
     const myTurn = st.turn === c.me && !st.winner && !st.draw && local.sent !== st.n;
     const name = (k) => c.esc(c.room.players?.[k]?.name || "?");
-    const disc = (i) => (i === 0 ? "🔴" : "🟡");
     const winCells = new Set((st.line || []).map(([r, cc]) => `${r},${cc}`));
     const canDrop = new Set(validCols(st.board));
+    const fresh = local.seenN !== undefined && local.seenN !== st.n; // yeni bir taş düştü
+    const firstWin = st.winner && !local.winShown;
+    local.seenN = st.n;
+    const turnIdx = g.p.indexOf(st.turn);
+    const pl = (i) => `<span class="c4pl ${!st.winner && !st.draw && turnIdx === i ? "on" : ""}"><i class="d${i}"></i>${g.p[i] === c.me ? "Sen" : name(g.p[i])}</span>`;
 
     app.innerHTML = `
-      <section class="card center">
+      <section class="card center c4card">
         <p class="eyebrow">🔴 Dörtlü Bağla</p>
-        <p>${disc(0)} ${name(g.p[0])} &nbsp;vs&nbsp; ${disc(1)} ${name(g.p[1])}</p>
-        <p class="big-result" style="margin-top:.4rem">${st.winner ? (st.winner === c.me ? "Kazandın! 🏆" : `${name(st.winner)} kazandı`) : st.draw ? "Berabere 🤝" : myTurn ? `Sıra sende ${disc(myIdx)}` : `${name(st.turn)} düşünüyor…`}</p>
+        <div class="c4head">${pl(0)}<span class="vs">vs</span>${pl(1)}</div>
+        <p class="big-result" style="margin:.4rem 0">${st.winner ? (st.winner === c.me ? "Kazandın! 🏆" : `${name(st.winner)} kazandı`) : st.draw ? "Berabere 🤝" : myTurn ? "Sıra sende: bir sütuna dokun" : `${name(st.turn)} düşünüyor…`}</p>
         <div class="cd"><i id="cdbar"></i></div>
-        <div class="c4">
-          ${st.board.map((row, r) => row.map((v, cc) => `
-            <button class="c4cell ${winCells.has(`${r},${cc}`) ? "win" : ""} ${st.last && st.last.row === r && st.last.col === cc ? "last" : ""}" data-col="${cc}" ${myTurn && canDrop.has(cc) ? "" : "disabled"}>
-              ${v === null ? "" : `<span class="disc d${v}"></span>`}
-            </button>`).join("")).join("")}
+        <div class="c4board ${myTurn ? "my" : ""}" id="c4b">
+          ${[...Array(COLS).keys()].map((cc) => `
+            <button class="c4col" data-col="${cc}" ${myTurn && canDrop.has(cc) ? "" : "disabled"} aria-label="Sütun ${cc + 1}">
+              <span class="c4ghost d${myIdx}"></span>
+              ${st.board.map((row, r) => {
+                const v = row[cc];
+                const isLast = st.last && st.last.row === r && st.last.col === cc;
+                return `<span class="c4hole">${v === null ? "" : `<span class="disc d${v} ${winCells.has(`${r},${cc}`) ? "win" : ""} ${isLast && fresh ? "drop" : ""}" style="--fall:${r + 1}"></span>`}</span>`;
+              }).join("")}
+            </button>`).join("")}
+          ${st.line ? winLine(st.line) : ""}
         </div>
       </section>`;
     app.querySelectorAll("[data-col]").forEach((b) => b.onclick = () => {
       if (!myTurn) return;
+      unlock();
       local.sent = st.n;
       c.input(`m${st.n}`, { col: Number(b.dataset.col), at: Math.round(c.now()) });
       app.querySelectorAll("[data-col]").forEach((x) => { x.disabled = true; });
     });
+
+    // ses: taş yere değdiğinde; kazanınca zil + yazı
+    if (fresh && st.last) { const r = st.last.row; c.timer(() => { sfx.checker(); buzz(12); }, 120 + r * 45); }
+    if (firstWin) {
+      local.winShown = true;
+      c.timer(() => { burst(document.getElementById("c4b"), st.winner === c.me ? "DÖRTLÜ! 🏆" : "DÖRTLÜ!", "gold"); sfx.turn(); buzz([40, 40, 90]); }, 550);
+    }
 
     // hamle süresi çubuğu
     const setBar = () => {
