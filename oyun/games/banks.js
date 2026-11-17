@@ -1,0 +1,220 @@
+// Soru bankaları — ileride panelden düzenlenebilir hale getirilecek.
+
+// 🤔 Ya Bu Ya Şu — [seçenek A, seçenek B]
+export const YA_BU = [
+  ["Hep yaz", "Hep kış"], ["Deniz", "Dağ"], ["Kahve", "Çay"], ["Erken kalkmak", "Geç yatmak"],
+  ["Kedi", "Köpek"], ["Tatlı", "Tuzlu"], ["Film", "Dizi"], ["Şehir", "Köy"],
+  ["Uçabilmek", "Görünmez olmak"], ["Geçmişe gitmek", "Geleceğe gitmek"], ["Pizza", "Hamburger"], ["Kitap", "Podcast"],
+  ["Konser", "Festival"], ["Sabah sporu", "Akşam sporu"], ["Sessiz bir akşam", "Kalabalık bir parti"], ["Tatilde otel", "Tatilde kamp"],
+  ["Hiç uyumamak", "Hiç yememek"], ["Herkesin aklını okumak", "Kimsenin seni görememesi"], ["Bir yıl internetsiz", "Bir yıl müziksiz"], ["Ünlü olmak", "Zengin olmak"],
+  ["Lahmacun", "Pide"], ["Menemen soğanlı", "Menemen soğansız"], ["Simit", "Poğaça"], ["Baklava", "Künefe"],
+  ["Futbol", "Basketbol"], ["Galata", "Kız Kulesi"], ["Ege", "Karadeniz"], ["Yazın İstanbul", "Kışın Uludağ"],
+  ["Hep doğruyu söylemek", "Hiç konuşmamak"], ["10 yaş genç", "10 kat zengin"], ["Bir dil daha", "Bir enstrüman"], ["Karaoke", "Dans"],
+  ["Mesaj", "Sesli arama"], ["Sürpriz parti", "Planlı doğum günü"], ["Gece kuşu", "Sabah insanı"], ["Uzun saç", "Kısa saç"],
+  ["Hayvanlarla konuşmak", "Bütün dilleri konuşmak"], ["Işınlanmak", "Zamanı durdurmak"], ["Plaj voleybolu", "Masa tenisi"], ["Korku filmi", "Komedi filmi"],
+  ["Rock", "Pop"], ["Arabesk", "Rap"], ["Deniz kenarında ev", "Ormanda kulübe"], ["Yağmurlu gün", "Karlı gün"],
+  ["Hep aynı yemek, sınırsız", "Her gün farklı, az"], ["Ünlü bir şefin yemeği", "Annenin yemeği"], ["Yolculukta tren", "Yolculukta uçak"], ["Bisiklet", "Motosiklet"],
+  ["Sonsuz tatil", "Sevdiğin iş"], ["Spoiler yemek", "Final bölümünü hiç izlememek"]
+];
+
+// 👉 Masada Kim? — sadece eğlenceli, kırıcı olmayan sorular
+export const MASADA_KIM = [
+  "Bu masada her yere en geç kim gelir?", "Bu masada en çok kim güler?", "Zombi kıyametinde en uzun kim hayatta kalır?",
+  "Bu masada en iyi dansçı kim?", "Telefonunu en çok kim kaybeder?", "Bu masada en iyi yemeği kim yapar?",
+  "Karaokede mikrofonu kim bırakmaz?", "En çok kim fotoğraf çeker?", "Bu masada en iyi sırrı kim tutar?",
+  "Gruba en çok kim mesaj atar?", "Tatil planını kim yapar?", "Bu masada en iyi hikayeyi kim anlatır?",
+  "En çok kim kahve içer?", "Filmde en çok kim ağlar?", "Gece en geç kim uyur?",
+  "Sabah en erken kim kalkar?", "Hesabı ödemeye ilk kim davranır?", "En çok kim alışveriş yapar?",
+  "Bu masada ünlü olacak kişi kim?", "En iyi fotoğraf pozunu kim verir?", "Kaybolunca yol tarifini kim bulur?",
+  "En çok kim şarkı mırıldanır?", "Bu masada en rekabetçi kim?", "En çok kim espri yapar?",
+  "Bir yarışma programını kim kazanır?", "Evcil hayvanı en çok kim sever?", "Bu masada en iyi sürücü kim?",
+  "En çok kim spor yapar?", "Diziyi bir gecede kim bitirir?", "Bu masada en sakin kişi kim?",
+  "Plan değiştirmeyi en çok kim sever?", "Bu masada en iyi dinleyici kim?", "Sokakta en çok kim tanınır?",
+  "Bu masada en meraklı kim?", "Yeni bir hobiye en hızlı kim başlar?", "Kim en iyi doğum günü sürprizini yapar?",
+  "Kim en çok emoji kullanır?", "Bu masada en iyi oyuncu kim?", "Kim herkesle hemen arkadaş olur?",
+  "Bir adada mahsur kalsak lider kim olur?"
+];
+
+// 🎬 Emoji Film — [emojiler, film adı, zorluk 1-3, tür]
+// tür: anim (animasyon), turk (Türk filmi), aksiyon, fantastik, klasik
+export const EMOJI_FILM = [
+  ["🦁👑", "Aslan Kral", 1, "anim"], ["🚢🧊💔", "Titanik", 1, "klasik"], ["🧊🐘🐿️", "Buz Devri", 1, "anim"],
+  ["⚡🧙‍♂️👓", "Harry Potter", 1, "fantastik"], ["🕷️👨", "Örümcek Adam", 1, "aksiyon"], ["👹💚🫏", "Shrek", 1, "anim"],
+  ["🐠🔍", "Kayıp Balık Nemo", 1, "anim"], ["🚗⚡🏁", "Arabalar", 1, "anim"], ["❄️👸⛄", "Karlar Ülkesi", 1, "anim"],
+  ["🦇🌃", "Batman", 1, "aksiyon"], ["🏴‍☠️🚢💀", "Karayip Korsanları", 1, "fantastik"], ["🏫😜📚", "Hababam Sınıfı", 1, "turk"],
+  ["🐼🥋", "Kung Fu Panda", 1, "anim"], ["🍎👸7️⃣", "Pamuk Prenses", 1, "anim"], ["🤥👃🪵", "Pinokyo", 1, "anim"],
+  ["⭐⚔️🌌", "Yıldız Savaşları", 1, "fantastik"], ["🦖🏝️", "Jurassic Park", 1, "aksiyon"], ["👽🚀🛸", "G.O.R.A.", 1, "turk"],
+
+  ["💍🌋🧝", "Yüzüklerin Efendisi", 2, "fantastik"], ["🤠🚀🧸", "Oyuncak Hikayesi", 2, "anim"], ["💊🕶️💻", "Matrix", 2, "aksiyon"],
+  ["🃏🤡", "Joker", 2, "klasik"], ["🏎️💨😠", "Hızlı ve Öfkeli", 2, "aksiyon"], ["💙🌳👽", "Avatar", 2, "fantastik"],
+  ["🥊🏃‍♂️🏆", "Rocky", 2, "klasik"], ["👨‍👦🌾😢", "Babam ve Oğlum", 2, "turk"], ["🤠🌵🐎", "Yahşi Batı", 2, "turk"],
+  ["🔫🚂🏙️", "Eşkıya", 2, "turk"], ["📺📡🏔️", "Vizontele", 2, "turk"], ["👧🪖🇰🇷", "Ayla", 2, "turk"],
+  ["🦁🦓🦒🏝️", "Madagaskar", 2, "anim"], ["🎈🏠👴", "Yukarı Bak", 2, "anim"], ["🪔🧞‍♂️🕌", "Alaaddin", 2, "anim"],
+  ["🌹👸🐻", "Güzel ve Çirkin", 2, "anim"], ["🍸🕵️‍♂️0️⃣0️⃣7️⃣", "James Bond", 2, "aksiyon"], ["🐭🏰✨", "Külkedisi", 2, "anim"],
+  ["🧜‍♀️🐚🌊", "Küçük Deniz Kızı", 2, "anim"], ["🦍🏙️", "King Kong", 2, "aksiyon"], ["🤖🔫🕶️", "Terminatör", 2, "aksiyon"],
+  ["🏃‍♂️🍫🪶", "Forrest Gump", 2, "klasik"],
+
+  ["🥋👦", "Karate Kid", 3, "aksiyon"], ["👻🚫", "Hayalet Avcıları", 3, "fantastik"], ["👽🚲🌕", "E.T.", 3, "fantastik"],
+  ["🦈🏊", "Jaws", 3, "klasik"], ["🐀👨‍🍳", "Ratatuy", 3, "anim"], ["🤖🌱", "Wall-E", 3, "anim"],
+  ["🌀💤🏙️", "Başlangıç", 3, "aksiyon"], ["🚀🌌⏳", "Yıldızlararası", 3, "fantastik"], ["⚔️🏟️", "Gladyatör", 3, "aksiyon"],
+  ["🐉🔥🛡️", "Ejderhanı Nasıl Eğitirsin", 3, "anim"], ["📺🏠🌊", "Truman Show", 3, "klasik"], ["🔨🧱🏃‍♂️", "Esaretin Bedeli", 3, "klasik"],
+  ["🌹🍝🔫", "Baba", 3, "klasik"], ["🐑🤫", "Kuzuların Sessizliği", 3, "klasik"], ["🎲🐘🌴", "Jumanji", 3, "fantastik"],
+  ["💀🎸🌼", "Coco", 3, "anim"], ["😀😢😡🧠", "Ters Yüz", 3, "anim"], ["🐰🦊🚓", "Zootropolis", 3, "anim"],
+  ["🌲🧣❤️", "Selvi Boylum Al Yazmalım", 3, "turk"]
+];
+
+// 🔤 Kelime Düellosu — kademeye göre uzunluk: kolay 4–5, orta 6–7, zor (harflerden kur) 6–7 harf
+export const KELIMELER = [
+  "kalem", "kitap", "deniz", "güneş", "çiçek", "bulut", "kuzey", "sabah", "akşam", "tabak",
+  "çatal", "kaşık", "bahçe", "köprü", "limon", "kiraz", "armut", "şeker", "kahve", "simit",
+  "börek", "müzik", "gitar", "davul", "resim", "tenis", "orman", "nehir", "yeşil", "beyaz",
+  "kapı", "masa", "lamba", "saat", "aslan", "yunus", "kartal", "bardak", "piyano", "sinema",
+  "futbol", "yağmur", "rüzgar", "toprak", "kırmızı", "turuncu", "pencere", "sandalye", "yastık", "telefon",
+  "kaplan", "zürafa", "penguen", "tavşan", "kelebek", "karınca", "baykuş", "tiyatro", "bisiklet", "kütüphane",
+  "otobüs", "uçurtma", "karpuz", "çikolata", "dondurma", "patates", "domates", "salatalık", "portakal", "mandalina",
+  "battaniye", "şemsiye", "anahtar", "gözlük", "ayakkabı", "kazak", "eldiven", "atkı", "kolye", "yüzük",
+  "fotoğraf", "kamera", "hediye", "balon", "pasta", "mektup", "harita", "pusula", "yelken", "liman"
+];
+
+// 📈 Yüksek mi Alçak mı — [konu, gerçek değer, birim, tür, kesinlik]
+// tür: "num" (oranla eşik), "year" (yıl farkı), "count" (küçük sayı, birim farkı)
+// kesinlik: 3 = kesin (zor turlarda kullanılabilir), 2 = yaklaşık (orta), 1 = kabaca (sadece kolay)
+export const YUKSEK_ALCAK = [
+  ["Everest'in yüksekliği", 8849, "metre", "num", 3],
+  ["Türkiye'deki il sayısı", 81, "", "count", 3],
+  ["Ay'ın Dünya'ya ortalama uzaklığı", 384400, "km", "num", 3],
+  ["Yetişkin bir insandaki kemik sayısı", 206, "", "num", 3],
+  ["Satrançta bir oyuncunun başlangıçtaki taş sayısı", 16, "", "count", 3],
+  ["Futbolda sahadaki bir takımın oyuncu sayısı", 11, "", "count", 3],
+  ["Nil Nehri'nin uzunluğu", 6650, "km", "num", 2],
+  ["Türkiye'nin yüzölçümü", 783562, "km²", "num", 3],
+  ["Ağrı Dağı'nın yüksekliği", 5137, "metre", "num", 3],
+  ["Dünya nüfusu", 8000000000, "kişi", "num", 1],
+  ["İstanbul'un nüfusu", 15600000, "kişi", "num", 2],
+  ["Bir piyanodaki tuş sayısı", 88, "", "num", 3],
+  ["Jokersiz bir iskambil destesindeki kart sayısı", 52, "", "count", 3],
+  ["Havada ses hızı (saniyede)", 343, "metre", "num", 2],
+  ["Deniz seviyesinde suyun kaynama sıcaklığı", 100, "°C", "num", 3],
+  ["Eyfel Kulesi'nin yüksekliği", 330, "metre", "num", 2],
+  ["Tam takım yetişkin dişi sayısı", 32, "", "count", 3],
+  ["Güneş Sistemi'ndeki gezegen sayısı", 8, "", "count", 3],
+  ["Bir gündeki saniye sayısı", 86400, "", "num", 3],
+  ["Türk alfabesindeki harf sayısı", 29, "", "count", 3],
+  ["Maraton koşusunun uzunluğu", 42.195, "km", "num", 3],
+  ["Olimpik yüzme havuzunun uzunluğu", 50, "metre", "num", 3],
+  ["Filin gebelik süresi", 22, "ay", "count", 2],
+  ["Türkiye Cumhuriyeti'nin ilan edildiği yıl", 1923, "", "year", 3],
+  ["İstanbul'un fethedildiği yıl", 1453, "", "year", 3],
+  ["Ay'a ilk insanın ayak bastığı yıl", 1969, "", "year", 3],
+  ["İlk iPhone'un tanıtıldığı yıl", 2007, "", "year", 3],
+  ["Titanik'in battığı yıl", 1912, "", "year", 3],
+  ["Tavlada bir oyuncunun pul sayısı", 15, "", "count", 3],
+  ["Okey setindeki toplam taş sayısı", 106, "", "num", 3],
+  ["Van Gölü'nün yüzölçümü", 3700, "km²", "num", 1],
+  ["Dünya'nın Ekvator'daki çevresi", 40075, "km", "num", 3],
+  ["Işığın saniyede aldığı yol", 299792, "km", "num", 3],
+  ["Bir yıldaki tam hafta sayısı", 52, "", "count", 3],
+  ["İlk FIFA Dünya Kupası'nın düzenlendiği yıl", 1930, "", "year", 3],
+  ["Türkiye'nin kara sınırı komşusu sayısı", 8, "", "count", 3],
+  ["Ahtapotun kalp sayısı", 3, "", "count", 3],
+  ["Örümceğin bacak sayısı", 8, "", "count", 3],
+  ["Atatürk'ün doğduğu yıl", 1881, "", "year", 3],
+  ["Berlin Duvarı'nın yıkıldığı yıl", 1989, "", "year", 3],
+  ["İlk modern Olimpiyat Oyunları'nın yılı", 1896, "", "year", 3],
+  ["Türkiye'de kadınlara milletvekili seçme ve seçilme hakkının verildiği yıl", 1934, "", "year", 3],
+  ["İnsan hücresindeki kromozom sayısı", 46, "", "count", 3],
+  ["Satranç tahtasındaki kare sayısı", 64, "", "num", 3],
+  ["Bir futbol maçının normal süresi", 90, "dakika", "num", 3],
+  ["Dünya'nın Güneş'e ortalama uzaklığı", 149600000, "km", "num", 3],
+  ["Mavi balinanın boyu", 25, "metre", "num", 1],
+  ["Çitanın en yüksek hızı", 110, "km/sa", "num", 1],
+  ["Yetişkin bir zürafanın boyu", 5, "metre", "count", 1],
+  ["Bir insanın günde göz kırpma sayısı", 15000, "", "num", 1]
+];
+
+// ⚔️ Masa Düellosu — [soru, doğru, yanlış1, yanlış2, yanlış3, zorluk 1-3]
+export const DUELLO = [
+  ["Türkiye'nin başkenti neresidir?", "Ankara", "İstanbul", "İzmir", "Bursa", 1],
+  ["Hangi gezegen \"Kızıl Gezegen\" olarak bilinir?", "Mars", "Venüs", "Jüpiter", "Satürn", 1],
+  ["Mona Lisa tablosunu kim yaptı?", "Leonardo da Vinci", "Michelangelo", "Picasso", "Van Gogh", 1],
+  ["Dünyanın en büyük okyanusu hangisidir?", "Büyük Okyanus (Pasifik)", "Atlas Okyanusu", "Hint Okyanusu", "Arktik Okyanusu", 1],
+  ["Hangisi bir memelidir?", "Yunus", "Köpekbalığı", "Ahtapot", "Penguen", 1],
+  ["Türkiye'nin en kalabalık şehri hangisidir?", "İstanbul", "Ankara", "İzmir", "Antalya", 1],
+  ["Suyun kimyasal formülü nedir?", "H₂O", "CO₂", "O₂", "NaCl", 1],
+  ["Gökkuşağında kaç renk vardır?", "7", "5", "6", "9", 1],
+  ["İstiklal Marşı'nın şairi kimdir?", "Mehmet Akif Ersoy", "Nazım Hikmet", "Orhan Veli", "Yahya Kemal", 1],
+  ["\"Çölün gemisi\" olarak bilinen hayvan hangisidir?", "Deve", "At", "Fil", "Eşek", 1],
+  ["Olimpiyat bayrağında kaç halka vardır?", "5", "4", "6", "7", 1],
+  ["Güneş Sistemi'nin en büyük gezegeni hangisidir?", "Jüpiter", "Satürn", "Neptün", "Dünya", 1],
+  ["Kırmızı ile sarı karışınca hangi renk olur?", "Turuncu", "Yeşil", "Mor", "Kahverengi", 1],
+  ["Peri bacaları hangi bölgemizdedir?", "Kapadokya", "Pamukkale", "Efes", "Nemrut", 1],
+  ["Hangisi telli bir çalgı değildir?", "Flüt", "Bağlama", "Keman", "Gitar", 1],
+  ["Futbol maçı normalde kaç devreden oluşur?", "2", "3", "4", "1", 1],
+
+  ["Hangi elementin sembolü \"Au\"dur?", "Altın", "Gümüş", "Alüminyum", "Argon", 2],
+  ["\"Sefiller\" romanının yazarı kimdir?", "Victor Hugo", "Tolstoy", "Dostoyevski", "Balzac", 2],
+  ["Japonya'nın başkenti neresidir?", "Tokyo", "Kyoto", "Osaka", "Seul", 2],
+  ["Tamamı Türkiye'de olan en uzun nehir hangisidir?", "Kızılırmak", "Sakarya", "Yeşilırmak", "Seyhan", 2],
+  ["Türkiye'nin yüzölçümü en büyük gölü hangisidir?", "Van Gölü", "Tuz Gölü", "Beyşehir Gölü", "Eğirdir Gölü", 2],
+  ["İnsan vücudunun en büyük organı hangisidir?", "Deri", "Karaciğer", "Akciğer", "Beyin", 2],
+  ["\"Kuyucaklı Yusuf\" romanının yazarı kimdir?", "Sabahattin Ali", "Orhan Kemal", "Yaşar Kemal", "Kemal Tahir", 2],
+  ["\"İnce Memed\" romanının yazarı kimdir?", "Yaşar Kemal", "Orhan Pamuk", "Sait Faik", "Reşat Nuri Güntekin", 2],
+  ["Nobel Edebiyat Ödülü'nü kazanan Türk yazar kimdir?", "Orhan Pamuk", "Yaşar Kemal", "Elif Şafak", "Nazım Hikmet", 2],
+  ["Truva antik kenti hangi ilimizdedir?", "Çanakkale", "İzmir", "Aydın", "Muğla", 2],
+  ["Halkalarıyla en çok bilinen gezegen hangisidir?", "Satürn", "Jüpiter", "Uranüs", "Mars", 2],
+  ["\"Hamlet\" oyununun yazarı kimdir?", "Shakespeare", "Dickens", "Goethe", "Molière", 2],
+  ["Bayrağında akçaağaç yaprağı olan ülke hangisidir?", "Kanada", "Avusturya", "İsviçre", "Yeni Zelanda", 2],
+  ["Beethoven ileri yaşlarında hangi duyusunu büyük ölçüde kaybetmiştir?", "İşitme", "Görme", "Koku", "Tat", 2],
+  ["Atatürk Samsun'a hangi tarihte çıktı?", "19 Mayıs 1919", "23 Nisan 1920", "29 Ekim 1923", "30 Ağustos 1922", 2],
+  ["TBMM hangi tarihte açıldı?", "23 Nisan 1920", "19 Mayıs 1919", "29 Ekim 1923", "1 Kasım 1922", 2],
+  ["Everest hangi sıradağlardadır?", "Himalayalar", "Alpler", "And Dağları", "Kafkaslar", 2],
+  ["Dünyanın yüzölçümü en küçük ülkesi hangisidir?", "Vatikan", "Monako", "San Marino", "Malta", 2],
+  ["Bitkiler fotosentezde havadan hangi gazı alır?", "Karbondioksit", "Oksijen", "Azot", "Hidrojen", 2],
+  ["Picasso hangi ülkede doğmuştur?", "İspanya", "İtalya", "Fransa", "Portekiz", 2],
+
+  ["Kanada'nın başkenti neresidir?", "Ottawa", "Toronto", "Vancouver", "Montreal", 3],
+  ["Avustralya'nın başkenti neresidir?", "Kanberra", "Sidney", "Melbourne", "Perth", 3],
+  ["Brezilya'nın resmi dili nedir?", "Portekizce", "İspanyolca", "Fransızca", "İngilizce", 3],
+  ["DNA'nın açılımındaki \"N\" neyi ifade eder?", "Nükleik", "Nötron", "Nitrojen", "Nöron", 3],
+  ["\"Kanuni\" lakabıyla bilinen Osmanlı padişahı kimdir?", "I. Süleyman", "II. Mehmet", "I. Selim", "IV. Murat", 3],
+  ["Malazgirt Meydan Muharebesi hangi yıl yapıldı?", "1071", "1176", "1299", "1453", 3],
+  ["Sembolü \"Fe\" olan element hangisidir?", "Demir", "Flor", "Fosfor", "Kurşun", 3],
+  ["Işığın boşluktaki hızı saniyede yaklaşık kaç km'dir?", "300.000", "30.000", "3.000.000", "150.000", 3],
+  ["En küçük asal sayı hangisidir?", "2", "1", "3", "0", 3],
+  ["\"Yüzyıllık Yalnızlık\" romanının yazarı kimdir?", "Gabriel García Márquez", "Jorge Luis Borges", "Pablo Neruda", "Paulo Coelho", 3],
+  ["İnsan hücresinde kaç çift kromozom bulunur?", "23", "46", "22", "24", 3],
+  ["İnsülin hormonunu hangi organ üretir?", "Pankreas", "Karaciğer", "Böbrek", "Mide", 3],
+  ["Osmanlı Devleti'nin kuruluş yılı olarak kabul edilen yıl hangisidir?", "1299", "1071", "1326", "1453", 3],
+  ["\"Suç ve Ceza\" romanının yazarı kimdir?", "Dostoyevski", "Tolstoy", "Çehov", "Gogol", 3],
+  ["Periyodik tabloda \"O\" sembolü hangi elementindir?", "Oksijen", "Osmiyum", "Altın", "Ozon", 3],
+  ["Mısır piramitlerinin en büyüğü kime atfedilir?", "Keops", "Tutankamon", "Ramses", "Kleopatra", 3]
+];
+
+// 🚫 Yasak Kelime — [anlatılacak kelime, yasak kelimeler...]
+export const YASAK = [
+  ["Futbol", "top", "gol", "maç", "kale"], ["Deniz", "su", "mavi", "dalga", "plaj"],
+  ["Kahve", "içmek", "fincan", "Türk", "kafein"], ["Telefon", "aramak", "mobil", "akıllı", "ekran"],
+  ["Doktor", "hastane", "hasta", "ilaç", "tedavi"], ["Kitap", "okumak", "sayfa", "yazar", "roman"],
+  ["Yağmur", "su", "bulut", "şemsiye", "ıslak"], ["Düğün", "gelin", "damat", "evlilik", "nikah"],
+  ["Pizza", "İtalyan", "peynir", "hamur", "dilim"], ["Uçak", "uçmak", "havalimanı", "pilot", "bilet"],
+  ["Bayram", "tatil", "şeker", "kurban", "el öpmek"], ["Kedi", "miyav", "hayvan", "tüy", "köpek"],
+  ["Sinema", "film", "bilet", "perde", "mısır"], ["Okul", "öğretmen", "öğrenci", "ders", "sınıf"],
+  ["Güneş", "sıcak", "ışık", "yaz", "gökyüzü"], ["Diş fırçası", "macun", "ağız", "temizlik", "banyo"],
+  ["Bisiklet", "pedal", "tekerlek", "sürmek", "iki"], ["Gitar", "tel", "müzik", "çalmak", "enstrüman"],
+  ["Tatil", "izin", "otel", "deniz", "gezi"], ["Kar", "beyaz", "kış", "soğuk", "kardan adam"],
+  ["Ayna", "yansıma", "cam", "bakmak", "görüntü"], ["Doğum günü", "pasta", "mum", "hediye", "yaş"],
+  ["Şemsiye", "yağmur", "açmak", "ıslanmak", "sap"], ["Buzdolabı", "soğuk", "mutfak", "yiyecek", "dondurucu"],
+  ["Saat", "zaman", "akrep", "yelkovan", "dakika"], ["Ateş", "yanmak", "sıcak", "alev", "duman"],
+  ["Simit", "susam", "çay", "kahvaltı", "halka"], ["Taksi", "sarı", "şoför", "araba", "taksimetre"],
+  ["Köprü", "nehir", "geçmek", "Boğaz", "yaka"], ["Ay", "gece", "dolunay", "gökyüzü", "yıldız"],
+  ["Market", "alışveriş", "kasa", "sepet", "ürün"], ["Dans", "müzik", "hareket", "ritim", "oynamak"],
+  ["Bal", "arı", "tatlı", "petek", "sarı"], ["Bulut", "gökyüzü", "beyaz", "yağmur", "pamuk"],
+  ["Plaj", "kum", "deniz", "güneş", "şezlong"], ["Fotoğraf", "kamera", "çekmek", "poz", "resim"],
+  ["Karpuz", "yaz", "kırmızı", "çekirdek", "meyve"], ["Mektup", "posta", "zarf", "yazmak", "pul"],
+  ["Kamp", "çadır", "ateş", "doğa", "uyku tulumu"], ["Hediye", "paket", "vermek", "sürpriz", "doğum günü"],
+  ["Hastane", "doktor", "hemşire", "ameliyat", "hasta"], ["Tren", "ray", "vagon", "istasyon", "makinist"],
+  ["Çay", "demlik", "bardak", "Rize", "şeker"], ["Kalem", "yazmak", "kurşun", "silgi", "kağıt"],
+  ["Rüya", "uyku", "gece", "görmek", "kabus"], ["Tavla", "zar", "pul", "oyun", "şeş beş"],
+  ["Balık", "deniz", "yüzmek", "olta", "pul"], ["Ayakkabı", "ayak", "bağcık", "giymek", "topuk"],
+  ["Ekmek", "fırın", "un", "somun", "kahvaltı"], ["Müze", "tarih", "eser", "sergi", "bilet"]
+];
