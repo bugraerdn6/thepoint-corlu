@@ -877,3 +877,20 @@ body:has(.arena) .tabbar, body:has(.modal) .tabbar { display: none; }
 .ss-guess { margin: 1rem 0 .4rem; }
 .ss-hint { display: inline-block; margin-top: .4rem; padding: 4px 12px; border-radius: 999px; background: var(--cream); font-weight: 500; }
 .btn.ss-ok { min-height: 60px; font-size: 1.1rem; }
+
+/* ===== Hiç Yapmadım ===== */
+.hy-q { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(1.5rem, 6.5vw, 2rem); line-height: 1.2; color: var(--olive-dark); margin: 1rem 0 .4rem; }
+.hy-q.small { font-size: 1.15rem; margin: .3rem 0 0; }
+.hy-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1rem; }
+.hy-b { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 120px; justify-content: center; border: 0; border-radius: 18px; color: #fff; font: inherit; font-weight: 600; font-size: 1.05rem; cursor: pointer;
+  box-shadow: 0 10px 20px -10px rgba(0,0,0,.5); transition: transform .1s, opacity .2s; }
+.hy-b span { font-size: 2.4rem; line-height: 1; }
+.hy-b.yes { background: linear-gradient(160deg, #d97a44, #9c4220); }
+.hy-b.no { background: linear-gradient(160deg, #6b7a52, #333c22); }
+.hy-b:active:not(:disabled) { transform: scale(.96); }
+.hy-b:disabled:not(.on) { opacity: .35; }
+.hy-b.on { box-shadow: 0 0 0 4px #ffd77a, 0 10px 20px -10px rgba(0,0,0,.5); }
+.hy-who { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: .7rem; }
+.hy-who.dim { opacity: .6; }
+.hy-chip { padding: 5px 12px; border-radius: 999px; background: var(--cream); font-weight: 500; font-size: .9rem; animation: optIn .35s calc(var(--k) * 80ms + 150ms) both cubic-bezier(.2,.9,.3,1.3); }
+.hy-chip.yes { background: var(--terracotta); color: #fff; }

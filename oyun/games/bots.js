@@ -114,6 +114,13 @@ function sessizBot(c, k) {
   once(c, k, key, rnd(5000, 11000), () => c.inputAs(key, k, { r: Math.random() < 0.7 ? "ok" : "pas", at: at(c) }));
 }
 
+// ---------- Hiç Yapmadım ----------
+function hicBot(c, k) {
+  const { g } = c;
+  if (g.phase !== "q" || had(c, `h${g.round}`, k)) return;
+  once(c, k, `h${g.round}`, rnd(1500, 6000), () => c.inputAs(`h${g.round}`, k, { y: Math.random() < 0.4 }));
+}
+
 // ---------- Dörtlü Bağla ----------
 function c4Wins(board, col, v) {
   let row = -1;
@@ -270,7 +277,7 @@ function blofBot(c, k) {
 export const BOTS = {
   refleks: refleksBot,
   yabu: quizBot, masadakim: quizBot, emojifilm: quizBot, kelime: quizBot, yuksekalcak: quizBot, duello: quizBot,
-  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot, sessiz: sessizBot,
+  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot, sessiz: sessizBot, hicyapmadim: hicBot,
   dortlu: dortluBot, amiral: amiralBot, zar: zarBot, pisti: pistiBot, blof: blofBot
   // tavla: botlarını tavla.js kendi yönetir
 };
