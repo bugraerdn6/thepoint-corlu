@@ -807,3 +807,43 @@ body:has(.arena) .tabbar, body:has(.modal) .tabbar { display: none; }
 @keyframes zPop { from { transform: scale(0) rotate(-90deg); } to { transform: none; } }
 .faces { gap: 4px; flex-wrap: nowrap; }
 .faces .face { width: 44px; height: 48px; flex: none; }
+
+/* ===== Soru oyunları v2 ===== */
+.quiz.qin { animation: qIn .38s cubic-bezier(.2,.9,.3,1.1); }
+.quiz.rvin { animation: qPop .3s ease-out; }
+@keyframes qIn { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes qPop { from { transform: scale(.97); } to { transform: none; } }
+.quiz .opt { position: relative; overflow: hidden; display: flex; align-items: center; gap: 10px; justify-content: flex-start; text-align: left; padding: 12px 12px; border-width: 2px;
+  --oc: var(--terracotta); border-color: color-mix(in srgb, var(--oc) 45%, transparent); }
+.quiz .opt.o1 { --oc: var(--olive); } .quiz .opt.o2 { --oc: #c99a3a; } .quiz .opt.o3 { --oc: #3b6a86; }
+.quiz .opt .ltr { flex: none; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-style: normal; font-weight: 700; font-size: .85rem; color: #fff; background: var(--oc); }
+.quiz .opt .otx { flex: 1; position: relative; z-index: 1; }
+.quiz .opt.picked { box-shadow: 0 0 0 3px color-mix(in srgb, var(--oc) 55%, transparent); border-color: var(--oc); background: color-mix(in srgb, var(--oc) 10%, #fff); }
+.quiz:not(.rv) .opt { animation: optIn .35s calc(var(--k) * 60ms + 120ms) both cubic-bezier(.2,.9,.3,1.2); }
+@keyframes optIn { from { transform: translateY(14px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+.quiz .opt .fill { position: absolute; left: 0; top: 0; bottom: 0; width: var(--pct); background: color-mix(in srgb, var(--oc) 16%, transparent); transform-origin: left; animation: fillGrow .6s .15s both ease-out; z-index: 0; }
+@keyframes fillGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.quiz .opt .ltr { position: relative; z-index: 1; }
+.quiz .opt .cnt { position: relative; z-index: 1; top: auto; right: auto; }
+.quiz .opt.right { background: #e3efd6; border-color: var(--go); }
+.quiz .opt.right .ltr { background: var(--go); }
+.quiz .opt.right { animation: rightPulse .8s ease-out; }
+.quiz .opt.wrong { animation: wrongShake .45s ease-in-out; }
+@keyframes rightPulse { 0% { box-shadow: 0 0 0 0 rgba(63,154,74,.6); } 100% { box-shadow: 0 0 0 14px rgba(63,154,74,0); } }
+@keyframes wrongShake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.cd.hurry { animation: hurry .5s ease-in-out infinite alternate; }
+.cd.hurry > i { background: var(--stop); }
+@keyframes hurry { to { box-shadow: 0 0 0 3px rgba(184,69,42,.25); } }
+.pts-fly { display: inline-block; color: var(--go); font-family: 'Jost', sans-serif; font-weight: 700; animation: ptsFly .9s cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes ptsFly { from { transform: translateY(18px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+/* Ya Bu Ya Şu: iki büyük yarı */
+.opts.versus { position: relative; grid-template-columns: 1fr 1fr; gap: 10px; }
+.opts.versus .opt { min-height: 130px; justify-content: center; text-align: center; font-size: 1.1rem; font-weight: 600; color: #fff; border: 0;
+  background: linear-gradient(160deg, var(--terracotta), #8f3f1c); }
+.opts.versus .opt.o1 { background: linear-gradient(160deg, var(--olive), #2a3019); }
+.opts.versus .opt.picked { box-shadow: 0 0 0 4px #ffd77a; }
+.opts.versus .opt .cnt { position: absolute; bottom: 8px; right: 10px; background: rgba(0,0,0,.3); color: #fff; }
+.opts.versus .opt.right { background: linear-gradient(160deg, #4f9a4a, #2e6a2a); }
+.opts.versus .opt .fill { background: rgba(255,255,255,.18); }
+.vsdot { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--paper); color: var(--olive-dark); font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(0,0,0,.35); }

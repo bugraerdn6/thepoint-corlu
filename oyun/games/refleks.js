@@ -1,3 +1,4 @@
+import { sfx, buzz, unlock } from "../sound.js";
 // ⚡ Refleks Yarışı — ekran yeşile dönünce ilk basan kazanır. Toplam süre en düşük olan kazanır.
 const ROUNDS = 3;
 const FALSE_START_MS = 1000;
@@ -58,7 +59,9 @@ export default {
     const a = c.arena();
     a.onpointerdown = (e) => {
       e.preventDefault();
+      unlock();
       if (local.tapped === r) return;
+      if (c.now() < goAt) { sfx.hit(); buzz([80, 40, 80]); } else sfx.tick();
       const now = c.now();
       if (now < goAt) write(c, r, { ms: FALSE_START_MS, fs: true });
       else write(c, r, { ms: Math.min(Math.round(now - goAt), TIMEOUT_MS) });
@@ -70,7 +73,7 @@ export default {
       c.timer(() => { if (local.tapped !== r && c.now() < goAt) screen(c, "decoy-" + d.col, r, "●", ""); }, wait);
       c.timer(() => { if (local.tapped !== r && c.now() < goAt) screen(c, "wait", r, "Bekle…", "Sadece yeşilde bas!"); }, wait + DECOY_MS);
     }
-    c.timer(() => { if (local.tapped !== r) screen(c, "go", r, "BAS!", ""); }, delay);
+    c.timer(() => { if (local.tapped !== r) { screen(c, "go", r, "BAS!", ""); sfx.turn(); buzz(60); } }, delay);
     c.timer(() => { if (local.tapped !== r) write(c, r, { ms: TIMEOUT_MS, to: true }); }, delay + TIMEOUT_MS);
   },
 

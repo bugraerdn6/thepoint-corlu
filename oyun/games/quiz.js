@@ -1,3 +1,4 @@
+import { sfx, buzz, unlock } from "../sound.js";
 // Soru oyunları için ortak yapı: soru → şıklar → süre → cevap gösterimi → sonraki soru.
 // Kademeli zorluk: her soru kendi süresini (tm) ve puan çarpanını (x) taşıyabilir.
 // cfg: { id, name, emoji, desc, rules, minPlayers, maxPlayers, timeMs,
@@ -7,6 +8,7 @@
 //        mode: "speed" (doğru + hızlı) | "majority" (çoğunluk) | "who" (en çok oy alan kişiyi bil),
 //        reveal?(q, counts) → ek açıklama html }
 const REVEAL_MS = 4500;
+const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
 const LEAD_MS = 1200;
 
 const TEAM_LABEL = { A: "🔵 Mavi", B: "🟠 Turuncu" };
@@ -79,6 +81,9 @@ export function makeQuiz(cfg) {
       const app = document.getElementById("app");
       c.hideArena();
 
+      const enter = local.enterKey !== `${g.phase}${r}`; // aşama değiştiyse giriş animasyonu
+      local.enterKey = `${g.phase}${r}`;
+      const versus = !q.b && q.o.length === 2 && mode !== "speed";
       if (g.phase === "q") {
         const done = mine || local.picked[r] !== undefined;
         const head = `
@@ -93,7 +98,7 @@ export function makeQuiz(cfg) {
           const used = local.build[r] || (local.build[r] = []);
           const word = mine ? mine.w : used.map((i) => letters[i]).join("");
           app.innerHTML = `
-            <section class="card center quiz">${head}
+            <section class="card center quiz ${enter ? "qin" : ""}">${head}
               <div class="slots">${letters.map((_, i) => `<span class="slot">${c.esc([...word][i] || "")}</span>`).join("")}</div>
               <div class="tiles pick">${letters.map((ch, i) => `<button class="tile" data-t="${i}" ${done || used.includes(i) ? "disabled" : ""}>${c.esc(ch)}</button>`).join("")}</div>
               ${done ? "" : `<button class="btn" id="undo" style="margin-top:.8rem">⌫ Sil</button>`}
@@ -113,14 +118,15 @@ export function makeQuiz(cfg) {
         } else {
           const picked = mine ? mine.c : local.picked[r];
           app.innerHTML = `
-            <section class="card center quiz">${head}
-              <div class="opts ${q.o.length > 2 ? "" : "two"}">
-                ${q.o.map((o, i) => `<button class="opt ${picked === i ? "picked" : ""}" data-i="${i}" ${picked !== undefined ? "disabled" : ""}>${c.esc(o)}</button>`).join("")}
+            <section class="card center quiz ${enter ? "qin" : ""}">${head}
+              <div class="opts ${q.o.length > 2 ? "" : "two"} ${versus ? "versus" : ""}">
+                ${q.o.map((o, i) => `<button class="opt o${i % 4} ${picked === i ? "picked" : ""}" data-i="${i}" ${picked !== undefined ? "disabled" : ""} style="--k:${i}">${versus ? "" : `<em class="ltr">${LETTERS[i]}</em>`}<span class="otx">${c.esc(o)}</span></button>`).join(versus ? `<span class="vsdot">VS</span>` : "")}
               </div>
               ${foot}
             </section>`;
           app.querySelectorAll(".opt").forEach((b) => b.onclick = () => {
             if (local.picked[r] !== undefined || c.now() < startAt) return;
+            unlock(); sfx.tick(); buzz(8);
             const i = Number(b.dataset.i);
             local.picked[r] = i;
             c.input(`q${r}`, { c: i, t: Math.max(0, Math.round(c.now() - startAt)) });
@@ -131,7 +137,10 @@ export function makeQuiz(cfg) {
         // geri sayım çubuğu
         const setBar = () => {
           const bar = document.getElementById("cdbar");
-          if (bar) bar.style.width = Math.min(100, (Math.max(0, g.endAt - c.now()) / tm) * 100) + "%";
+          const left = Math.max(0, g.endAt - c.now());
+          if (bar) { bar.style.width = Math.min(100, (left / tm) * 100) + "%"; bar.parentElement.classList.toggle("hurry", left < 3000); }
+          const sec = Math.ceil(left / 1000);
+          if (left > 0 && left < 3000 && local.tickSec !== `${r}:${sec}` && !(mine || local.picked[r] !== undefined)) { local.tickSec = `${r}:${sec}`; sfx.tick(); }
           return bar;
         };
         if (local.cdRound !== r) {
@@ -169,19 +178,21 @@ export function makeQuiz(cfg) {
         Object.values(answers).forEach((v) => { counts[v.c] = (counts[v.c] || 0) + 1; });
         const max = Math.max(0, ...Object.values(counts));
         const winOpt = (i) => mode === "speed" ? i === q.a : (counts[i] || 0) === max && max > 0;
+        const total = Math.max(1, Object.keys(answers).length);
         body = `
-          <div class="opts ${q.o.length > 2 ? "" : "two"}">
-            ${q.o.map((o, i) => `<div class="opt ${winOpt(i) ? "right" : picked === i ? "wrong" : ""} ${picked === i ? "picked" : ""}">
-              ${c.esc(o)}<span class="cnt">${counts[i] || 0}</span></div>`).join("")}
+          <div class="opts ${q.o.length > 2 ? "" : "two"} ${versus ? "versus" : ""}">
+            ${q.o.map((o, i) => `<div class="opt o${i % 4} ${winOpt(i) ? "right" : picked === i ? "wrong" : ""} ${picked === i ? "picked" : ""}" style="--pct:${Math.round(((counts[i] || 0) / total) * 100)}%">
+              <span class="fill"></span>${versus ? "" : `<em class="ltr">${winOpt(i) ? "✓" : LETTERS[i]}</em>`}<span class="otx">${c.esc(o)}</span><span class="cnt">${counts[i] || 0}</span></div>`).join(versus ? `<span class="vsdot">VS</span>` : "")}
           </div>
           ${cfg.reveal ? `<div class="muted" style="margin-top:.7rem">${cfg.reveal(q, counts, c)}</div>` : ""}`;
       }
+      if (enter) { if (myPts) { sfx.turn(); buzz([20, 30, 20]); } else if (mine) { sfx.hit(); buzz(40); } }
       app.innerHTML = `
-        <section class="card center quiz">
+        <section class="card center quiz rv ${enter ? "rvin" : ""}">
           <p class="eyebrow">${cfg.emoji} ${c.esc(cfg.name)} · ${r + 1}/${g.qs.length} ${badge(q)}</p>
           <div class="prompt">${prompt(q, c.esc)}</div>
           ${body}
-          <p class="big-result">${myPts ? `+${myPts} puan 🎉` : !mine ? "Cevap vermedin" : mode === "speed" ? "Olmadı 😅" : "Azınlıkta kaldın 😅"}</p>
+          <p class="big-result">${myPts ? `<span class="pts-fly">+${myPts}</span> puan 🎉` : !mine ? "Cevap vermedin" : mode === "speed" ? "Olmadı 😅" : "Azınlıkta kaldın 😅"}</p>
           <ol class="list mini">${top.map((p, i) => `<li class="${p.k === c.me ? "me" : ""}"><span class="rank">${i + 1}</span><span class="name">${c.esc(p.name)}</span><span class="val">${p.s}</span></li>`).join("")}</ol>
         </section>`;
     },
