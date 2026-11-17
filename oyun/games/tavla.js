@@ -126,7 +126,7 @@ export default {
   id: "tavla", name: "Tavla", emoji: "🎲",
   desc: "2 kişi · Klasik tavla, maç usulü",
   rules: "Standart tavla kuralları: kırılan pul önce girer, iki zar da oynanabiliyorsa ikisi de oynanır, biri oynanabiliyorsa büyüğü. Çift gelirse 4 hamle. Bütün pullar evdeyken toplanır. <b>Rakip hiç pul toplamadan bitirirsen mars: 2 sayı.</b> Zar iki telefonun birlikte ürettiği sayılarla atılır, kimse önceden bilemez. Hamle süresi 60 sn.",
-  minPlayers: 2, maxPlayers: 2, soloTest: false, bot: true,
+  minPlayers: 2, maxPlayers: 2, soloTest: false, bot: true, rematch: true,
   options: [{ key: "target", label: "Maç uzunluğu", default: 3, values: [{ v: 1, label: "Tek oyun" }, { v: 3, label: "3 sayı" }, { v: 5, label: "5 sayı" }] }],
 
   start(c) {
@@ -165,6 +165,17 @@ export default {
       const moves = R.randomTurn(st.v, st.dl);
       c.advance(() => c.inputAs(st.pre + "m", who, { mv: enc(moves), at: Math.round(c.now()), auto: true }));
     }
+  },
+
+  summary(room) {
+    const g = room.g;
+    if (!g?.p) return "";
+    const S = matchStats(room);
+    const nm = (side) => (g.p[side] === BOT ? "🤖 Bilgisayar" : esc(room.players?.[g.p[side]]?.name || "?"));
+    const row = (label, k) => `<tr><td>${label}</td><td>${S[0][k]}</td><td>${S[1][k]}</td></tr>`;
+    return `<table class="tv-sum"><thead><tr><th></th><th>${nm(0)}</th><th>${nm(1)}</th></tr></thead><tbody>
+      ${row("Kazanılan oyun", "won")}${row("Mars", "mars")}${row("Kırdığı pul", "hits")}${row("Çift zar", "doubles")}${row("En uzun blok", "prime")}
+    </tbody></table>`;
   },
 
   results(room) {
@@ -241,6 +252,44 @@ function botTick(c, st, M) {
   }
 }
 
-export { replayMatch };
+// ---------- maç istatistikleri (sadece maç sonunda, önbelleksiz) ----------
+const esc = (x) => String(x).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+function longestPrime(v) { let best = 0, run = 0; for (let p = 1; p <= 24; p++) { if (v.p[p] >= 2) { run++; best = Math.max(best, run); } else run = 0; } return best; }
+
+function matchStats(room) {
+  const g = room.g;
+  const S = [0, 1].map(() => ({ won: 0, mars: 0, hits: 0, doubles: 0, prime: 0 }));
+  const M = replayMatch(room);
+  const I = (key, side) => room.in?.[key]?.[g.p[side]];
+  M.games.forEach((res, gm) => {
+    if (res.over && res.cheat === undefined) { S[res.winner].won++; if (res.pts === 2) S[res.winner].mars++; }
+    // açılış
+    let starter = null, open = null;
+    for (let k = 0; k < 30; k++) {
+      const pre = `g${gm}o${k}`, r = I(pre + "r", 0), s2 = I(pre + "s", 1);
+      if (!r || !s2) break;
+      const [a, b] = R.deriveDice(s2.s, r.v, pre);
+      if (a !== b) { starter = a > b ? 0 : 1; open = [a, b]; break; }
+    }
+    if (starter === null) return;
+    let real = R.initialReal();
+    for (let n = 0; n < 1000; n++) {
+      const mover = (starter + n) % 2, non = 1 - mover, pre = `g${gm}t${n}`;
+      let dice = open;
+      if (n > 0) { const r = I(pre + "r", mover), s2 = I(pre + "s", non); if (!r || !s2) break; dice = R.deriveDice(s2.s, r.v, pre); }
+      const m = I(pre + "m", mover); if (!m) break;
+      const v = R.view(real, mover);
+      const after = validateCached(v, R.diceList(dice[0], dice[1]), m.mv); if (!after) break;
+      if (n > 0 && dice[0] === dice[1]) S[mover].doubles++;
+      S[mover].hits += Math.max(0, after.bar[1] - v.bar[1]);
+      S[mover].prime = Math.max(S[mover].prime, longestPrime(after));
+      real = R.unview(after, mover);
+      if (real.off[mover] === 15) break;
+    }
+  });
+  return S;
+}
+
+export { replayMatch, matchStats };
 // test için: önbellekleri temizle
 export function _clearCaches() { ckpt.clear(); doneGames.clear(); valCache.clear(); shaMemo.clear(); }

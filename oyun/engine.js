@@ -369,14 +369,26 @@ async function renderDone(room) {
       <ol class="list" style="margin-top:.4rem">
         ${res.map((x, i) => `<li class="${x.k === state.hk ? "me" : ""}"><span class="rank">${i + 1}</span><span class="name">${esc(x.name)}</span><span class="val">${esc(x.label)}</span></li>`).join("")}
       </ol>
+      ${game.summary ? `<div style="margin-top:1rem">${game.summary(room)}</div>` : ""}
       <div class="stack" style="margin-top:1rem">
-        ${R.isHost ? `<button class="btn primary block" id="again">Tekrar oyna ↻</button>` : `<p class="center muted small">Oda sahibi yeni oyun başlatabilir.</p>`}
+        ${R.isHost && game.rematch ? `<button class="btn accent block" id="rematch">Rövanş ↻</button>` : ""}
+        ${R.isHost ? `<button class="btn ${game.rematch ? "" : "primary"} block" id="again">${game.rematch ? "Lobiye dön" : "Tekrar oyna ↻"}</button>` : `<p class="center muted small">Oda sahibi ${game.rematch ? "rövanş" : "yeni oyun"} başlatabilir.</p>`}
         <button class="btn block" id="leave">← Ana sayfa</button>
       </div>
     </section>`;
   document.getElementById("leave").onclick = () => leave();
   const again = document.getElementById("again");
   if (again) again.onclick = () => update(R.roomRef, { state: "lobby", g: null, in: null });
+  const rematch = document.getElementById("rematch");
+  if (rematch) rematch.onclick = async () => {
+    const vsBot = !!R.room.g?.bot;
+    if (!vsBot && playerList(R.room).length < game.minPlayers) { toast("Rakip odadan çıkmış."); return; }
+    rematch.disabled = true;
+    try {
+      const g = await game.start({ ...ctx(), players: playerList(R.room), vsBot });
+      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp() });
+    } catch (e) { console.error(e); toast("Başlatılamadı."); rematch.disabled = false; }
+  };
 
   if (!multi) return;
   const key = `tp_award_${R.code}_${room.startedAt}`;
