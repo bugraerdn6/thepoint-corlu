@@ -862,3 +862,18 @@ body:has(.arena) .tabbar, body:has(.modal) .tabbar { display: none; }
 .pcard .court b { font-size: 1.25rem; }
 .pcard.big .court b { font-size: 1.6rem; }
 .fan .pcard .court b { font-size: 1.35rem; }
+
+/* ===== Sessiz Sinema ===== */
+.ss-next { margin: 1rem 0 .4rem; }
+.ss-mask { font-size: 2.6rem; display: inline-block; animation: ssMask 2s ease-in-out infinite; }
+.ss-mask.big { font-size: 3.4rem; }
+@keyframes ssMask { 50% { transform: rotate(-8deg) scale(1.06); } }
+.ss-card { margin: 1rem auto .4rem; max-width: 300px; padding: 22px 16px; border-radius: 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: #fff;
+  background: radial-gradient(ellipse at 50% 0%, #7a4a8a, #2c1a38); box-shadow: 0 12px 26px -10px rgba(0,0,0,.6), inset 0 0 0 2px rgba(255,255,255,.12); animation: qIn .35s ease-out; }
+.ss-card.watch { opacity: .9; }
+.ss-cat { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; background: rgba(255,255,255,.14); padding: 3px 10px; border-radius: 999px; }
+.ss-word { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: clamp(1.7rem, 7vw, 2.4rem); line-height: 1.1; }
+.ss-wc { font-size: .8rem; opacity: .75; }
+.ss-guess { margin: 1rem 0 .4rem; }
+.ss-hint { display: inline-block; margin-top: .4rem; padding: 4px 12px; border-radius: 999px; background: var(--cream); font-weight: 500; }
+.btn.ss-ok { min-height: 60px; font-size: 1.1rem; }

@@ -17,6 +17,7 @@ export const META = {
   hikaye:      { cat: "party", people: "3–8 kişi",  mins: "6 dk" },
   duello:      { cat: "team",  people: "2–16 kişi", mins: "5 dk" },
   yasak:       { cat: "team",  people: "4–12 kişi", mins: "6 dk" },
+  sessiz:      { cat: "team",  people: "4–12 kişi", mins: "8 dk" },
   pisti:       { cat: "card",  people: "2–4 kişi",  mins: "10 dk" },
   blof:        { cat: "card",  people: "3–6 kişi",  mins: "8 dk" },
   zar:         { cat: "card",  people: "2–6 kişi",  mins: "8 dk" },
@@ -24,7 +25,7 @@ export const META = {
   dortlu:      { cat: "board", people: "2 kişi",    mins: "5 dk" },
   amiral:      { cat: "board", people: "2 kişi",    mins: "8 dk" },
   // yakında
-  "Sessiz Sinema": { cat: "team" }, "Köylü ve Kurt": { cat: "team" }, "Hiç Yapmadım": { cat: "party" },
+  "Vampir Köylü": { cat: "team" }, "Hiç Yapmadım": { cat: "party" },
   "Çiz-Tahmin": { cat: "party" }, "Dama": { cat: "board" }
 };
 
@@ -64,7 +65,7 @@ const TONES = {
   refleks: ["#d97a44", "#9c4220"], yabu: ["#c99a3a", "#7d5a18"], masadakim: ["#7b8a52", "#3f4a26"], emojifilm: ["#8a4a5a", "#4a2230"],
   kelime: ["#4f7a72", "#24443e"], yuksekalcak: ["#b5653a", "#6a3015"], ikidogru: ["#9a7a3a", "#56401a"], hikaye: ["#6b5a8a", "#382c50"],
   duello: ["#5c6a3f", "#2a3019"], yasak: ["#a8452a", "#5a1f10"], pisti: ["#3d5a4a", "#1f3329"], blof: ["#2f4a5a", "#162630"], zar: ["#6a5a3a", "#352a14"],
-  tavla: ["#6b4a2a", "#3a2614"], dortlu: ["#3a4f78", "#1c2840"], amiral: ["#3b6a86", "#1a3446"]
+  tavla: ["#6b4a2a", "#3a2614"], sessiz: ["#5a3a6a", "#2c1a38"], dortlu: ["#3a4f78", "#1c2840"], amiral: ["#3b6a86", "#1a3446"]
 };
 
 export function coverSvg(rawId, emoji, cat) {

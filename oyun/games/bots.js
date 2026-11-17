@@ -7,6 +7,7 @@ import { replay as c4replay } from "./dortlu.js";
 import { replay as bsReplay, randomFleet } from "./amiral.js";
 import { bids as zarBids, alive as zarAlive } from "./zar.js";
 import { resolveTurn } from "./yasak.js";
+import { resolveTurn as ssResolve } from "./sessiz.js";
 
 export const isBotKey = (k) => typeof k === "string" && k.startsWith("__bot");
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -102,6 +103,15 @@ function yasakBot(c, k) {
     b.done["dec" + key] = true;
     if (Math.random() < 0.08) once(c, k, key, rnd(2500, 4000), () => { if (resolveTurn(c.room, c.g.turn).length === n) c.inputAs(key, k, { r: "tabu", at: at(c) }); });
   }
+}
+
+// ---------- Sessiz Sinema (bot anlatıcı: arada bir "bildiler") ----------
+function sessizBot(c, k) {
+  const { g } = c;
+  if (g.phase !== "turn" || g.order[g.turn].k !== k) return;
+  const n = ssResolve(c.room, g.turn).length, key = `t${g.turn}c${n}`;
+  if (had(c, key, k)) return;
+  once(c, k, key, rnd(5000, 11000), () => c.inputAs(key, k, { r: Math.random() < 0.7 ? "ok" : "pas", at: at(c) }));
 }
 
 // ---------- Dörtlü Bağla ----------
@@ -260,7 +270,7 @@ function blofBot(c, k) {
 export const BOTS = {
   refleks: refleksBot,
   yabu: quizBot, masadakim: quizBot, emojifilm: quizBot, kelime: quizBot, yuksekalcak: quizBot, duello: quizBot,
-  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot,
+  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot, sessiz: sessizBot,
   dortlu: dortluBot, amiral: amiralBot, zar: zarBot, pisti: pistiBot, blof: blofBot
   // tavla: botlarını tavla.js kendi yönetir
 };
