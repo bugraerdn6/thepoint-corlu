@@ -17,7 +17,7 @@ export function newDeck() {
 }
 
 const red = (card) => suitOf(card) === "♥" || suitOf(card) === "♦";
-const COURT = { J: "V", Q: "K", K: "P" }; // Türkçe: Vale, Kız, Papaz
+const COURT = { J: "J", Q: "Q", K: "K" }; // kartlarda standart semboller (oyun yazılarında Vale/Kız/Papaz)
 
 // Kartın yüzü: köşelerde sayı + renk, ortada büyük simge; resimli kartlarda çerçeveli harf
 function faceInner(card) {
