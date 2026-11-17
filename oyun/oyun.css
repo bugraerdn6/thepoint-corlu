@@ -312,3 +312,42 @@ body:has(.rxbar) .wrap { padding-bottom: 6rem; }
 .faces { display: flex; justify-content: center; gap: 0.3rem; margin-top: 0.6rem; flex-wrap: wrap; }
 .face { font-size: 2rem; line-height: 1; width: 48px; height: 52px; border-radius: 10px; border: 1.5px solid rgba(51, 60, 34, 0.25); background: #fff; cursor: pointer; }
 .face.on { border-color: var(--olive); background: var(--sage); }
+
+/* Kart oyunları */
+.pcard {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 48px; height: 68px; border-radius: 7px; background: #fff; border: 1.5px solid rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); color: #1d1d1d; font: inherit; padding: 0; line-height: 1; cursor: pointer;
+  transition: transform 0.1s;
+}
+.pcard b { font-weight: 600; font-size: 1.05rem; }
+.pcard i { font-style: normal; font-size: 1.2rem; }
+.pcard.red { color: #c0392b; }
+.pcard.big { width: 64px; height: 90px; }
+.pcard.big b { font-size: 1.4rem; } .pcard.big i { font-size: 1.6rem; }
+.pcard.back { background: repeating-linear-gradient(45deg, var(--olive), var(--olive) 5px, var(--olive-dark) 5px, var(--olive-dark) 10px); border-color: var(--olive-deep); }
+.pcard:disabled { cursor: default; }
+button.pcard:not(:disabled):active { transform: translateY(-4px); }
+.pcard.sel { transform: translateY(-10px); border-color: var(--terracotta); box-shadow: 0 0 0 2px var(--terracotta); }
+.pcard.played { opacity: 0.3; }
+.pcard.wrongc { box-shadow: 0 0 0 3px var(--stop); }
+.hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem; padding-top: 10px; }
+.hand.small .pcard { width: 40px; height: 56px; }
+.felt { display: flex; align-items: center; justify-content: center; gap: 0.6rem; min-height: 110px; margin: 0.6rem 0; background: radial-gradient(ellipse at center, #3d6b4a, #2c5238); border-radius: 14px; padding: 0.6rem; }
+.felt .muted { color: #cfe3d4; }
+.pback-stack { position: relative; display: inline-flex; align-items: center; gap: 0.25rem; }
+.pback-stack .pcard { width: 26px; height: 36px; }
+.pback-stack em { font-style: normal; font-size: 0.8rem; font-weight: 600; }
+.felt .pback-stack .pcard { width: 44px; height: 62px; } .felt .pback-stack em { color: #fff; }
+.opp-row { display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
+.opp { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; padding: 0.35rem 0.6rem; border-radius: 10px; background: var(--cream); font-size: 0.85rem; min-width: 84px; }
+.opp.on { box-shadow: 0 0 0 2px var(--terracotta); }
+.opp small { color: var(--muted); font-size: 0.72rem; }
+.reveal { margin: 0.6rem 0; padding: 0.6rem; border-radius: 12px; }
+.reveal.lie { background: #f6e0d6; } .reveal.truth { background: #e3efd6; }
+
+/* Hikaye Zinciri */
+.quote { margin: 0; padding: 0.7rem 0.9rem; border-left: 3px solid var(--terracotta); background: var(--cream); border-radius: 0 8px 8px 0; font-style: italic; }
+.story p { margin-top: 0.6rem; font-size: 1.05rem; animation: fadeIn 0.6s; }
+.story small { color: var(--muted); font-size: 0.75rem; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
