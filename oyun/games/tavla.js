@@ -139,7 +139,7 @@ export default {
     const me = c.g.p.indexOf(c.me);
     const M = replayMatch(c.room);
     autoActions(c, M.cur, me, M);
-    renderTavla(c, M, { replay: () => replayMatch(c.room), enc, BETWEEN_GAMES_MS, ROLL_MS, MOVE_MS, AUTO_WAIT_MS });
+    renderTavla(c, M, { replay: () => replayMatch(c.room), enc, dec, BETWEEN_GAMES_MS, ROLL_MS, MOVE_MS, AUTO_WAIT_MS });
   },
 
   hostTick(c) {
@@ -218,6 +218,8 @@ function autoActions(c, st, me, M) {
   if (st.phase === "o-roll") once(st.pre + "r", () => c.input(st.pre + "r", { v: R.randomHex(8), at: Math.round(c.now()) }), 500);
   if (st.phase === "o-reveal") once(st.pre + "s", () => reveal(st.pre + "c", st.pre + "s"), 300);
   if (st.phase === "commit") once(st.pre + "c", () => commit(st.pre + "c"));
+  // ön kilitleme: ben oynarken, bir sonraki turda (rakibin turu) kilitlemem gereken gizli sayıyı şimdiden yaz
+  if (st.phase === "move" && st.n != null) { const nxt = `g${st.gm}t${st.n + 1}c`; once(nxt, () => commit(nxt)); }
   if (st.phase === "reveal") once(st.pre + "s", () => reveal(st.pre + "c", st.pre + "s"));
   if (st.phase === "move" && R.turnInfo(st.v, st.dl).total === 0) {
     once(st.pre + "m", () => c.input(st.pre + "m", { mv: "-", at: Math.round(c.now()) }), 1800);
@@ -236,19 +238,28 @@ function botTick(c, st, M) {
   const prevGame = M.games.length > 1 ? M.games[M.games.length - 2] : null;
   const pause = prevGame ? Math.max(0, prevGame.lastAt + BETWEEN_GAMES_MS - c.now()) : 0;
   const act = (fn, ms) => c.timer(() => { if (c.room.state === "play") fn(); }, ms);
-  if (st.phase === "o-commit" || st.phase === "commit") {
+  const botCommit = (key) => {
+    if (c.inputs[key]?.[BOT]) return;
     const secret = R.randomHex(16);
-    try { localStorage.setItem(sKey(st.pre + "c"), secret); } catch { /* */ }
-    act(() => c.inputAs(st.pre + "c", BOT, { h: R.sha256(secret), at: at() }), st.phase === "o-commit" ? pause + 200 : 150);
+    try { localStorage.setItem(sKey(key), secret); } catch { /* */ }
+    c.inputAs(key, BOT, { h: R.sha256(secret), at: at() });
+  };
+  if (st.phase === "o-commit" || st.phase === "commit") {
+    if (st.phase === "o-commit") act(() => botCommit(st.pre + "c"), pause + 100);
+    else botCommit(st.pre + "c");
   } else if (st.phase === "o-reveal" || st.phase === "reveal") {
     let secret = null;
     try { secret = localStorage.getItem(sKey(st.pre + "c")); } catch { /* */ }
-    if (secret) act(() => c.inputAs(st.pre + "s", BOT, { s: secret, at: at() }), 150);
+    if (secret) c.inputAs(st.pre + "s", BOT, { s: secret, at: at() });
   } else if (st.phase === "o-roll" || st.phase === "roll") {
-    act(() => c.inputAs(st.pre + "r", BOT, { v: R.randomHex(8), at: at() }), st.phase === "roll" ? 900 : 400);
+    act(() => c.inputAs(st.pre + "r", BOT, { v: R.randomHex(8), at: at() }), 350);
   } else if (st.phase === "move") {
     const moves = chooseTurn(st.v, st.dl);
-    act(() => c.inputAs(st.pre + "m", BOT, { mv: enc(moves), at: at() }), 1500 + moves.length * 350); // düşünüyormuş gibi
+    // kısa bir "düşünme" + hamleyle birlikte bir sonraki tur (benim turum) için gizli sayıyı önceden kilitle
+    act(() => {
+      botCommit(`g${st.gm}t${st.n + 1}c`);
+      c.inputAs(st.pre + "m", BOT, { mv: enc(moves), at: at() });
+    }, Math.min(1400, 600 + moves.length * 200));
   }
 }
 

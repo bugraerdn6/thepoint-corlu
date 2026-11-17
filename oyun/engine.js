@@ -15,7 +15,8 @@ const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 // telefondaki gizli bilgiler ve oyun hafızası buna bağlanır.
 const newRunId = () => [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, "0")).join("");
 export const runOf = (room) => room?.runId || room?.startedAt;
-export const REACTIONS = ["👏", "😂", "🔥", "😮", "🍸", "GG"];
+const membersOf = (room) => Object.fromEntries(Object.keys(room?.players || {}).map((k) => [k, true]));
+export const REACTIONS = ["👏", "😂", "🔥", "😮", "😤", "🍸", "GG"];
 let R = null; // aktif oda
 
 const randCode = () => Array.from({ length: 4 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join("");
@@ -77,8 +78,9 @@ export async function joinRoom(code) {
   if (!game) return toast("Bu oyun henüz desteklenmiyor.");
   if (room.state === "closed") return toast("Bu oda kapanmış.");
   if (room.kicked?.[state.hk]) return toast("Bu odaya giremezsin.");
-  if (room.state !== "lobby" && !already) return toast("Bu oyun başlamış, bir sonrakini bekle.");
-  if (!already && Object.keys(room.players || {}).length >= game.maxPlayers) return toast("Oda dolu.");
+  const member = !!room.members?.[state.hk];
+  if (room.state !== "lobby" && !already && !member) return toast("Bu oyun başlamış, bir sonrakini bekle.");
+  if (!already && !member && Object.keys(room.players || {}).length >= game.maxPlayers) return toast("Oda dolu.");
 
   const meRef = ref(db, `rooms/${code}/players/${state.hk}`);
   if (!already) {
@@ -95,7 +97,12 @@ export async function joinRoom(code) {
     timers: [], local: {}, localKey: null, arena: null, hostLoop: null, advancing: false, awardedKey: null
   };
   history.replaceState(null, "", `?oda=${code}`);
-  state.unsubs.push(onValue(roomRef, (s) => { if (R && R.code === code) { R.room = s.val(); render(); } }));
+  state.unsubs.push(onValue(roomRef, (s) => {
+    if (!R || R.code !== code) return;
+    R.room = s.val(); render();
+    // oda sahibi: her değişimde hemen kontrol (aralıklı kontrolü beklemeden)
+    if (R.isHost && R.room?.state === "play" && !R.advancing) { try { R.game.hostTick(ctx()); } catch (e) { console.error(e); } }
+  }));
   state.unsubs.push(onChildAdded(query(ref(db, `rooms/${code}/rx`), limitToLast(1)), (s) => {
     const r = s.val();
     if (R && r && r.at >= R.joinedAt - 2000) showReaction(r);
@@ -165,7 +172,10 @@ function ctx() {
     timer: (fn, ms) => { const t = setTimeout(fn, ms); R.timers.push(t); return t; },
     clearTimers: () => { R.timers.forEach(clearTimeout); R.timers = []; },
     arena, hideArena, esc,
-    leave: () => leave()
+    leave: () => leave(),
+    // canlı önizleme: bu turdaki henüz gönderilmemiş hamlelerimi rakibe göster
+    live: (val) => set(ref(db, `rooms/${R.code}/live/${state.hk}`), val).catch(() => {}),
+    react: (e) => sendReaction(e)
   };
 }
 
@@ -201,7 +211,15 @@ function render() {
     if (!R.isHost) toast("Oda kapandı.");
     return leave(true);
   }
-  if (room.kicked?.[state.hk] || (!room.players?.[state.hk] && room.state !== "closed")) {
+  if (!room.kicked?.[state.hk] && !room.players?.[state.hk] && room.members?.[state.hk] && room.state !== "lobby") {
+    // bağlantı kısa süre koptu (sunucu kaydımı sildi): maç üyesiyim, sessizce geri yaz
+    if (!R.rejoining) {
+      R.rejoining = true;
+      set(R.meRef, { name: displayName(state.profile), at: serverTimestamp() })
+        .then(() => onDisconnect(R.meRef).remove())
+        .catch(() => {}).finally(() => { if (R) R.rejoining = false; });
+    }
+  } else if (room.kicked?.[state.hk] || (!room.players?.[state.hk] && room.state !== "closed")) {
     toast("Odadan çıkarıldın.");
     return leave(true);
   }
@@ -287,7 +305,7 @@ function renderLobby(room) {
     startBot.disabled = true;
     try {
       const g = await game.start({ ...ctx(), players, vsBot: true });
-      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp(), runId: newRunId() });
+      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp(), runId: newRunId(), members: membersOf(R.room) });
     } catch (e) { console.error(e); toast("Başlatılamadı."); startBot.disabled = false; }
   };
   if (start) start.onclick = async () => {
@@ -300,7 +318,7 @@ function renderLobby(room) {
         if (players.length >= 2 && (!b.count.A || !b.count.B)) { toast("İki takımda da en az 1 kişi olmalı."); start.disabled = false; return; }
       }
       const g = await game.start({ ...ctx(), players });
-      await update(R.roomRef, { ...patch, state: "play", g, in: null, rx: null, startedAt: serverTimestamp(), runId: newRunId() });
+      await update(R.roomRef, { ...patch, state: "play", g, in: null, rx: null, startedAt: serverTimestamp(), runId: newRunId(), members: membersOf(R.room) });
     } catch (e) { console.error(e); toast("Başlatılamadı."); start.disabled = false; }
   };
 }
@@ -390,7 +408,7 @@ async function renderDone(room) {
     rematch.disabled = true;
     try {
       const g = await game.start({ ...ctx(), players: playerList(R.room), vsBot });
-      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp(), runId: newRunId() });
+      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp(), runId: newRunId(), members: membersOf(R.room) });
     } catch (e) { console.error(e); toast("Başlatılamadı."); rematch.disabled = false; }
   };
 
@@ -510,12 +528,17 @@ function ensureRxBar() {
   bar.innerHTML = REACTIONS.map((e) => `<button data-e="${e}">${e}</button>`).join("");
   bar.onclick = (ev) => {
     const b = ev.target.closest("button");
-    if (!b || !R) return;
-    if (Date.now() - lastRx < 2000) return;
-    lastRx = Date.now();
-    push(ref(db, `rooms/${R.code}/rx`), { hk: state.hk, e: b.dataset.e, at: serverTimestamp() }).catch(() => {});
+    if (b) sendReaction(b.dataset.e);
   };
   document.body.appendChild(bar);
+}
+
+function sendReaction(e) {
+  if (!R || !REACTIONS.includes(e)) return false;
+  if (Date.now() - lastRx < 2000) return false;
+  lastRx = Date.now();
+  push(ref(db, `rooms/${R.code}/rx`), { hk: state.hk, e, at: serverTimestamp() }).catch(() => {});
+  return true;
 }
 
 function showReaction(r) {

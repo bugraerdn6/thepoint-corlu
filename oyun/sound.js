@@ -58,7 +58,17 @@ export const sfx = {
     const t = ctx.currentTime;
     thump(t, 150, 0.12, 0.45); noiseBurst(t, 0.05, 1400, 0.4, 2);
   },
-  tick() { if (!isMuted() && ctx) noiseBurst(ctx.currentTime, 0.015, 3500, 0.12, 6); }
+  tick() { if (!isMuted() && ctx) noiseBurst(ctx.currentTime, 0.015, 3500, 0.12, 6); },
+  // "sıra sende": iki tonlu kısa zil
+  turn() {
+    if (isMuted() || !ctx) return;
+    const t = ctx.currentTime;
+    [[660, 0], [880, 0.13]].forEach(([f, d]) => {
+      const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.value = f;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.22, t + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.28);
+      o.connect(g).connect(ctx.destination); o.start(t + d); o.stop(t + d + 0.3);
+    });
+  }
 };
 
 export const buzz = (p) => { try { navigator.vibrate?.(p); } catch { /* */ } };

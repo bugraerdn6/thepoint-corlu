@@ -499,3 +499,25 @@ body:has(.arena.tv-arena) .rxbar { display: none; }
 .tv-sum td:first-child, .tv-sum th:first-child { text-align: left; color: var(--muted); }
 .tv-sum th { font-weight: 600; font-size: 0.8rem; }
 .tv-sum td { font-family: 'Jost', sans-serif; font-weight: 500; }
+
+/* ===== Tavla v4: canlı izleme, bağlantı, emoji, VS ===== */
+.tv-ck.live circle:nth-child(2) { stroke: #e8b04a; stroke-width: 1.8; stroke-dasharray: 3 2; }
+.tvp-pl .av .net { position: absolute; right: -1px; bottom: -1px; width: 9px; height: 9px; border-radius: 50%; background: #8a8a7a; border: 1.5px solid #1f2516; }
+.tvp-pl .av .net.on { background: #5fbf5f; }
+.tvp-net { margin: 0; text-align: center; font-size: 0.78rem; color: #f0a07a; }
+.tv-emos { display: flex; justify-content: space-between; gap: 2px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); }
+.tv-emos button { flex: 1; height: 38px; border: 0; background: transparent; font-size: 1.25rem; color: var(--cream); font-weight: 700; cursor: pointer; border-radius: 50%; }
+.tv-emos button:active { background: rgba(255, 255, 255, 0.15); }
+.tv-vs {
+  position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; justify-content: center; gap: clamp(16px, 6vw, 60px);
+  background: radial-gradient(ellipse at center, rgba(58, 69, 39, 0.97), rgba(20, 24, 14, 0.98)); opacity: 0; pointer-events: none; transition: opacity 0.35s;
+}
+.tv-vs.show { opacity: 1; }
+.tv-vs .vs-side { display: flex; flex-direction: column; align-items: center; gap: 10px; transform: translateX(-30px); transition: transform 0.5s cubic-bezier(.2,.9,.3,1.2); }
+.tv-vs .vs-side:last-child { transform: translateX(30px); }
+.tv-vs.show .vs-side { transform: none; }
+.tv-vs .vs-side i { width: 56px; height: 56px; border-radius: 50%; border: 2px solid #6b6250; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), inset 0 -4px 0 rgba(0, 0, 0, 0.2); }
+.tv-vs .vs-side b { font-size: 1.1rem; max-width: 30vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv-vs .vs-mid { display: flex; flex-direction: column; align-items: center; }
+.tv-vs .vs-mid span { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: clamp(2.6rem, 9vw, 4rem); color: #e8b04a; line-height: 1; }
+.tv-vs .vs-mid small { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.75; margin-top: 4px; }

@@ -13,6 +13,7 @@ const T = {
   ]
 };
 const AUTO_SEND_MS = 1500;   // son hamleden sonra otomatik onay süresi
+const EMOJIS = ["👏", "😂", "🔥", "😮", "😤", "GG"]; // motorun tepki listesinin alt kümesi
 const CALLOUT_MS = 1700;
 
 // ---------- tahta geometrisi (SVG birimleri) ----------
@@ -115,7 +116,7 @@ function boardSvg(v, me, o = {}) {
       if (hide.has(`${pt}:${i}`)) continue;
       const p = posOf(mine, pt, i);
       const last = i === show - 1;
-      s += disc(p.x, p.y, mine ? myC : opC, last && n > 5 ? n : "", mine && last && o.sources?.has(pt) ? "src" : "");
+      s += disc(p.x, p.y, mine ? myC : opC, last && n > 5 ? n : "", mine && last && o.sources?.has(pt) ? "src" : (!mine && last && o.liveTo?.has(pt) ? "live" : ""));
     }
   }
   for (let i = 0; i < Math.min(v.bar[0], 4); i++) { const p = posOf(true, "bar", i); s += disc(p.x, p.y, myC, i === Math.min(v.bar[0], 4) - 1 && v.bar[0] > 4 ? v.bar[0] : "", i === 0 && o.sources?.has(R.BAR) ? "src" : ""); }
@@ -254,7 +255,8 @@ export function renderTavla(c, M, H2) {
   if (turnKey && turnKey !== local.animKey) {
     const prev = local.prevReal;
     local.animKey = turnKey;
-    if (prev && st.lastTurn.mover === opp && st.lastTurn.moves.length) {
+    const watched = local.liveLast && local.liveLast.pre === `g${st.gm}t${st.lastTurn.n}` && local.liveLast.mv === H2.enc(st.lastTurn.moves);
+    if (prev && st.lastTurn.mover === opp && st.lastTurn.moves.length && !watched) {
       local.prevReal = real;
       return playOppTurn(c, prev, st.lastTurn, me, () => renderTavla(c, H2.replay(), H2));
     }
@@ -264,6 +266,7 @@ export function renderTavla(c, M, H2) {
   const myMove = st.phase === "move" && st.side === me && !M.over;
   if (local.pendKey !== st.pre) { local.pendKey = st.pre; local.pend = []; local.sel = null; local.preferDie = null; }
   let v = R.view(real, me), info = null, steps = [];
+  showVs(c, st, M, me, opp);
   if (myMove) {
     if (local.info?.key !== st.pre) local.info = { key: st.pre, val: R.turnInfo(st.v, st.dl) };
     info = local.info.val;
@@ -271,6 +274,35 @@ export function renderTavla(c, M, H2) {
     steps = R.nextSteps(st.v, st.dl, local.pend, info);
   }
   const done = myMove && local.pend.length === info.total;
+  // canlı yayın: hamlelerimi gönderilmeden önce rakibe göster
+  if (myMove && !g.bot && c.live) {
+    const lk = st.pre + "|" + H2.enc(local.pend);
+    if (local.liveKey !== lk) { local.liveKey = lk; c.live({ pre: st.pre, mv: H2.enc(local.pend) }); }
+  }
+  // canlı izleme: rakip oynarken pullarını anında gör
+  let liveTo = null, liveFly = null;
+  if (!M.over && st.phase === "move" && st.side === opp && !g.bot) {
+    const lv = c.room.live?.[g.p[opp]];
+    if (local.livePre !== st.pre) { local.livePre = st.pre; local.liveN = 0; }
+    if (lv && lv.pre === st.pre) {
+      const lm = H2.dec(lv.mv);
+      let vo = R.view(real, opp), before = null;
+      try { lm.forEach((m, i) => { if (i === lm.length - 1) before = vo; vo = R.applyMove(vo, m); }); } catch { /* */ }
+      v = R.view(R.unview(vo, opp), me);
+      liveTo = new Set(lm.map((m) => (m.to === R.OFF ? null : 25 - m.to)).filter(Boolean));
+      if (lm.length > local.liveN && before) {
+        const m = lm[lm.length - 1], vb = R.view(R.unview(before, opp), me);
+        const mm = { from: m.from === R.BAR ? R.BAR : 25 - m.from, to: m.to === R.OFF ? R.OFF : 25 - m.to };
+        liveFly = {
+          from: mm.from === R.BAR ? posOf(false, "bar", 0) : posOf(false, mm.from, Math.max(0, Math.min(-vb.p[mm.from] - 1, 4))),
+          to: mm.to === R.OFF ? posOf(false, "off", vb.off[1]) : posOf(false, mm.to, Math.min(Math.max(0, -vb.p[mm.to]), 4)),
+          hit: mm.to !== R.OFF && vb.p[mm.to] === 1
+        };
+      }
+      local.liveN = lm.length;
+      local.liveLast = { pre: st.pre, mv: lv.mv };
+    }
+  }
   const sources = new Set(done ? [] : steps.map((s) => s.from));
   const targets = local.sel != null ? steps.filter((s) => s.from === local.sel) : [];
 
@@ -283,7 +315,13 @@ export function renderTavla(c, M, H2) {
   const turnSide = st.mover ?? st.side; // zar hazırlanırken de sıra, oynayacak olanındır
   boardBox.classList.toggle("opp-turn", !M.over && turnSide === opp && !!st.phase && !st.phase.startsWith("o-"));
   const boardEl = arena.querySelector("#tvBoard");
-  boardEl.innerHTML = boardSvg(v, me, { sources, targets, oppPaths });
+  boardEl.innerHTML = boardSvg(v, me, { sources, targets, oppPaths, liveTo });
+  if (liveFly) {
+    const svgEl = boardEl.querySelector("svg");
+    const dest = findDisc(svgEl, liveFly.to);
+    if (dest) dest.style.opacity = "0";
+    flyGhost(svgEl, opp, liveFly.from, liveFly.to, 200).then(() => { if (dest) dest.style.opacity = ""; (liveFly.hit ? sfx.hit : sfx.checker)(); });
+  }
   wireBoard(c, boardEl, { myMove, done, steps, sources, v, me, st, rerender: () => renderTavla(c, H2.replay(), H2) });
 
   updateDice(c, st, M, me);
@@ -297,6 +335,7 @@ function buildSkeleton(c, arena) {
     <div class="tv-root">
       <div class="tv-stage"><div class="tv-boardbox"><div id="tvBoard"></div><div class="tv-dice" id="tvDice">${dieHtml("tvD0")}${dieHtml("tvD1")}</div><div class="tv-callout" id="tvCallout"></div></div></div>
       <aside class="tv-panel" id="tvPanel"></aside>
+      <div class="tv-vs" id="tvVs"></div>
       <div class="tv-rotate">
         <div class="tv-phone">📱</div>
         <p><b>Telefonu yan çevir</b><br>Tahta tam ekran olsun</p>
@@ -332,16 +371,43 @@ function events(c, st, M, me, opp, real) {
     c.timer(() => callout(`Sen ${mine} · ${name(opp)} ${theirs} → ${st.side === me ? "Sen başlıyorsun" : "Rakip başlıyor"}`, "big"), 900);
     return;
   }
-  // senin sıran
-  if (st.phase === "roll" && st.side === me && F.turnBanner !== st.pre) {
+  // senin sıran: bant + zil + titreşim (+ arka plandaysa sekme başlığı)
+  const myTurnStart = (st.phase === "roll" && st.side === me) || (st.n === 0 && st.phase === "move" && st.side === me);
+  if (myTurnStart && F.turnBanner !== st.pre) {
     F.turnBanner = st.pre;
-    callout("Senin sıran", "turn");
+    if (st.phase === "roll") callout("Senin sıran", "turn");
+    sfx.turn(); buzz([70, 50, 70]);
+    titleFlash();
   }
   // mars uyarıları (oyun başına bir kez)
   const vMe = R.view(real, me);
   const outsideMe = vMe.bar[0] > 0 || vMe.p.slice(7, 25).some((x) => x > 0);
   if (!F.marsMe && vMe.off[0] === 0 && vMe.off[1] >= 9 && outsideMe) { F.marsMe = true; c.timer(() => callout("⚠️ Mars tehlikesi!", "warn"), 400); }
   if (!F.marsOpp && vMe.off[1] === 0 && vMe.off[0] >= 9) { F.marsOpp = true; c.timer(() => callout("🔥 Rakibi mars edebilirsin!", "good"), 400); }
+}
+
+function titleFlash() {
+  if (!document.hidden) return;
+  const old = document.title;
+  document.title = "🎲 Sıra sende!";
+  const restore = () => { if (!document.hidden) { document.title = old; document.removeEventListener("visibilitychange", restore); } };
+  document.addEventListener("visibilitychange", restore);
+}
+
+// Maç başında 2 sn'lik "VS" ekranı
+function showVs(c, st, M, me, opp) {
+  const { local, g } = c;
+  if (local.vsShown || st.gm !== 0 || !st.phase?.startsWith("o-")) return;
+  local.vsShown = true;
+  const el = document.getElementById("tvVs");
+  if (!el) return;
+  const name = (side) => (g.p[side] === "__bot" ? "🤖 Bilgisayar" : c.esc(c.room.players?.[g.p[side]]?.name || "?"));
+  el.innerHTML = `
+    <div class="vs-side"><i style="background:${T.ck[me].a};border-color:${T.ck[me].ring}"></i><b>Sen</b></div>
+    <div class="vs-mid"><span>VS</span><small>${g.target > 1 ? `${g.target} sayılık maç` : "tek oyun"}</small></div>
+    <div class="vs-side"><i style="background:${T.ck[opp].b}"></i><b>${name(opp)}</b></div>`;
+  el.classList.add("show");
+  c.timer(() => el.classList.remove("show"), 1900);
 }
 
 function updateDice(c, st, M, me) {
@@ -365,10 +431,10 @@ function updateDice(c, st, M, me) {
       local.tumbleKey = pre;
       diceTumble(local, mode);
       local.settledKey = pre;
-      c.timer(() => diceSettle(local, faces, false), 650);
+      c.timer(() => diceSettle(local, faces, false), 520);
     } else {
       local.settledKey = pre;
-      c.timer(() => diceSettle(local, faces, false), Math.max(0, 650 - (performance.now() - (local.tumbleAt || 0))));
+      c.timer(() => diceSettle(local, faces, false), Math.max(0, 520 - (performance.now() - (local.tumbleAt || 0))));
     }
   }
   const used = st.phase === "move" && st.side === me ? (local.pend || []).map((m) => m.d) : [];
@@ -557,14 +623,14 @@ function playOppTurn(c, prevReal, turn, me, done) {
     if (hit) gotHit = true;
     const srcEl = findDisc(svg, from);
     if (srcEl) srcEl.style.opacity = "0";
-    flyGhost(svg, opp, from, to, 300).then(() => {
+    flyGhost(svg, opp, from, to, 240).then(() => {
       (hit ? sfx.hit : sfx.checker)();
       if (hit) buzz([30, 40, 30]);
       vOpp = R.applyMove(vOpp, m);
-      c.timer(next, 90);
+      c.timer(next, 50);
     });
   };
-  c.timer(next, 250);
+  c.timer(next, 120);
 }
 
 // ---------- yan panel ----------
@@ -597,19 +663,21 @@ function renderPanel(c, el, o) {
       chips = `<div class="tvp-chips"><small>Dokununca:</small>${usable.map((d) => `<button class="chip-die ${d === cur ? "on" : ""}" data-die="${d}">${d}</button>`).join("")}</div>`;
     }
   }
+  const oppOnline = g.p[opp] === "__bot" || !!c.room.players?.[g.p[opp]];
   const ring = (on) => `<svg class="ring" viewBox="0 0 32 32"><circle cx="16" cy="16" r="${RING_R}" class="rbg"/>${on ? `<circle cx="16" cy="16" r="${RING_R}" class="rfg" stroke-dasharray="${RING_C}" stroke-dashoffset="0"/>` : ""}</svg>`;
   const turnSide = st.phase?.startsWith("o-") ? null : (st.mover ?? st.side);
   const activeOpp = turnSide === opp && !M.over, activeMe = turnSide === me && !M.over;
 
   el.innerHTML = `
     <div class="tvp-pl ${activeOpp ? "on" : ""}">
-      <span class="av">${ring(activeOpp)}<i class="dot" style="background:${T.ck[opp].b}"></i></span><span class="nm">${name(opp)}</span>
+      <span class="av">${ring(activeOpp)}<i class="dot" style="background:${T.ck[opp].b}"></i><i class="net ${oppOnline ? "on" : ""}" title="${oppOnline ? "Bağlı" : "Bağlantı yok"}"></i></span><span class="nm">${name(opp)}</span>
       <small>${R.pips(vOp)} pip · ${vOp.off[0]}/15</small>
     </div>
     <div class="tvp-score"><b>${M.score[opp]}</b><span>–</span><b>${M.score[me]}</b><small>${g.target > 1 ? `${g.target} sayılık maç` : "tek oyun"}</small></div>
     ${banner}
     <div class="tvp-mid">
       <p class="tvp-status">${status}</p>
+      ${!oppOnline && !M.over ? `<p class="tvp-net">📡 Rakibin bağlantısı koptu, bekleniyor…</p>` : ""}
       ${myRoll ? `<button class="tvp-throw" id="tvThrow"><span class="mini-dice">⚄⚂</span><b>Zarı at</b><small>dokun ya da tahtaya dokun</small></button>` : ""}
       ${chips}
       ${myMove && info.total > 0 ? `
@@ -622,7 +690,9 @@ function renderPanel(c, el, o) {
       <span class="av">${ring(activeMe)}<i class="dot" style="background:${T.ck[me].a};border-color:${T.ck[me].ring}"></i></span><span class="nm">Sen</span>
       <small>${R.pips(vMe)} pip · ${vMe.off[0]}/15</small>
     </div>
+    ${local.emoOpen ? `<div class="tv-emos">${EMOJIS.map((e) => `<button data-emo="${e}">${e}</button>`).join("")}</div>` : ""}
     <div class="tvp-tools">
+      ${g.bot ? "" : `<button id="tvEmo" title="Tepki">😀</button>`}
       <button id="tvMute" title="Ses">${isMuted() ? "🔇" : "🔊"}</button>
       ${canFs ? `<button id="tvFs" title="Tam ekran">⛶</button>` : ""}
       <button id="tvExit" title="Çık">✕</button>
@@ -648,6 +718,9 @@ function renderPanel(c, el, o) {
   if (undo) undo.onclick = () => { if (local.sent === st.pre) return; local.pend.pop(); local.sel = null; local.autoKey = null; sfx.tick(); renderTavla(c, H2.replay(), H2); };
   const send = el.querySelector("#tvSend");
   if (send) send.onclick = () => sendMoves(c, st, H2);
+  const emo = el.querySelector("#tvEmo");
+  if (emo) emo.onclick = () => { local.emoOpen = !local.emoOpen; renderTavla(c, H2.replay(), H2); };
+  el.querySelectorAll("[data-emo]").forEach((b) => b.onclick = () => { c.react?.(b.dataset.emo); local.emoOpen = false; renderTavla(c, H2.replay(), H2); });
   el.querySelector("#tvMute").onclick = (e) => { setMuted(!isMuted()); unlock(); e.target.textContent = isMuted() ? "🔇" : "🔊"; };
   const fs = el.querySelector("#tvFs");
   if (fs) fs.onclick = async () => {
