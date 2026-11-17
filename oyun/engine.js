@@ -142,6 +142,7 @@ function ctx() {
     // sadece oda sahibi: süresi dolan oyuncu adına otomatik hamle
     inputAs: (key, hk, val) => set(ref(db, `rooms/${R.code}/in/${key}/${hk}`), val).catch((e) => console.warn(e)),
     TEAMS,
+    opt: (key) => { const o = (R.game.options || []).find((x) => x.key === key); return R.room.opt?.[key] ?? o?.default; },
     // sadece oda sahibi: oyun durumunu güncelle
     setG: (patch) => {
       const p = {};
@@ -239,6 +240,11 @@ function renderLobby(room) {
           ${Object.entries(TEAMS).map(([t, v]) => `<button class="btn grow ${myTeam === t ? "primary" : ""}" data-team="${t}">${v.emoji} ${v.name}</button>`).join("")}
         </div>
         <p class="muted small center" style="margin-top:.3rem">Takımını seç. Seçmeyenler başlarken otomatik dağıtılır.</p>` : ""}
+      ${(game.options || []).map((o) => {
+        const cur = room.opt?.[o.key] ?? o.default;
+        return `<div style="margin-top:.8rem"><p class="muted small">${esc(o.label)}</p>
+          <div class="seg">${o.values.map((v) => `<button class="${cur === v.v ? "on" : ""}" data-opt="${esc(o.key)}" data-v="${v.v}" ${R.isHost ? "" : "disabled"}>${esc(v.label)}</button>`).join("")}</div></div>`;
+      }).join("")}
       ${R.isHost ? `<div id="inviteBox"></div>` : ""}
       <hr>
       <p class="muted small"><b>Nasıl oynanır:</b> ${game.rules}</p>
@@ -261,6 +267,12 @@ function renderLobby(room) {
   const vis = document.getElementById("vis");
   if (vis) vis.onclick = () => update(R.roomRef, { visibility: room.visibility === "public" ? "private" : "public" });
   app.querySelectorAll("[data-menu]").forEach((b) => b.onclick = () => playerMenu(b.dataset.menu));
+  app.querySelectorAll("[data-opt]").forEach((b) => b.onclick = () => {
+    if (!R.isHost) return;
+    const o = game.options.find((x) => x.key === b.dataset.opt);
+    const v = o.values.find((x) => String(x.v) === b.dataset.v);
+    if (v) update(R.roomRef, { [`opt/${o.key}`]: v.v });
+  });
   app.querySelectorAll("[data-team]").forEach((b) => b.onclick = () => set(ref(db, `rooms/${R.code}/players/${state.hk}/team`), b.dataset.team));
   if (R.isHost) renderInviteBox(room);
   const start = document.getElementById("start");

@@ -9,8 +9,9 @@ import zar from "./zar.js";
 import pisti from "./pisti.js";
 import blof from "./blof.js";
 import hikaye from "./hikaye.js";
+import tavla from "./tavla.js";
 
-export const GAMES = [refleks, duello, yaBu, masadaKim, emojiFilm, kelime, yuksekAlcak, ikidogru, yasak, dortlu, amiral, zar, pisti, blof, hikaye];
+export const GAMES = [refleks, duello, yaBu, masadaKim, emojiFilm, kelime, yuksekAlcak, ikidogru, yasak, dortlu, amiral, zar, pisti, blof, hikaye, tavla];
 
 // Henüz yapılmamış oyunlar (ana sayfada "yakında" olarak görünür)
 export const UPCOMING = [
@@ -18,6 +19,5 @@ export const UPCOMING = [
   { emoji: "🐺", name: "Köylü ve Kurt", desc: "Gizli rol oyunu" },
   { emoji: "🎭", name: "Sessiz Sinema", desc: "Takımlar, anlatmak yok, sadece hareket" },
   { emoji: "🙋", name: "Hiç Yapmadım", desc: "Kim neyi yaptı, ortaya çıksın" },
-  { emoji: "⚫", name: "Dama", desc: "Türk daması, 2 kişi" },
-  { emoji: "🎲", name: "Tavla", desc: "Klasik tavla, 2 kişi" }
+  { emoji: "⚫", name: "Dama", desc: "Türk daması, 2 kişi" }
 ];
