@@ -3,12 +3,15 @@
 //   hamle yapmayan taraf gizli bir sayının hash'ini kilitler → oynayan "Zar at" der (kendi sayısı) → gizli sayı açılır → zar = f(ikisi).
 // Oyun durumu tamamen girdilerden her telefonda yeniden kurulur; yasadışı hamle sayılmaz.
 import * as R from "./tavla-rules.js";
+import { renderTavla } from "./tavla-ui.js";
+import { chooseTurn } from "./tavla-bot.js";
+
+export const BOT = "__bot";
 
 const ROLL_MS = 25000;
 const MOVE_MS = 60000;
 const AUTO_WAIT_MS = 20000;   // otomatik adımları yapmayan (bağlantısı kopan) taraf hükmen kaybeder
 const BETWEEN_GAMES_MS = 3500;
-const CLR = ["#f3ede2", "#2b2622"]; // taraf 0 açık, taraf 1 koyu pul
 
 const enc = (moves) => (moves.length ? moves.map((m) => `${m.from}-${m.to}-${m.d}`).join(",") : "-");
 const dec = (s) => (!s || s === "-" ? [] : String(s).split(",").map((x) => { const [from, to, d] = x.split("-").map(Number); return { from, to, d }; }));
@@ -123,106 +126,20 @@ export default {
   id: "tavla", name: "Tavla", emoji: "🎲",
   desc: "2 kişi · Klasik tavla, maç usulü",
   rules: "Standart tavla kuralları: kırılan pul önce girer, iki zar da oynanabiliyorsa ikisi de oynanır, biri oynanabiliyorsa büyüğü. Çift gelirse 4 hamle. Bütün pullar evdeyken toplanır. <b>Rakip hiç pul toplamadan bitirirsen mars: 2 sayı.</b> Zar iki telefonun birlikte ürettiği sayılarla atılır, kimse önceden bilemez. Hamle süresi 60 sn.",
-  minPlayers: 2, maxPlayers: 2, soloTest: false,
+  minPlayers: 2, maxPlayers: 2, soloTest: false, bot: true,
   options: [{ key: "target", label: "Maç uzunluğu", default: 3, values: [{ v: 1, label: "Tek oyun" }, { v: 3, label: "3 sayı" }, { v: 5, label: "5 sayı" }] }],
 
   start(c) {
-    const p = c.players.map((x) => x.k);
+    const p = c.vsBot ? [c.me, BOT] : c.players.map((x) => x.k);
     if (Math.random() < 0.5) p.reverse();
-    return { p, target: Number(c.opt("target")) || 3, startAt: Math.round(c.now()) };
+    return { p, target: Number(c.opt("target")) || 3, startAt: Math.round(c.now()), ...(c.vsBot ? { bot: BOT } : {}) };
   },
 
   render(c) {
-    const { g, local } = c;
-    const app = document.getElementById("app");
-    c.hideArena();
-    const me = g.p.indexOf(c.me);
-    const opp = 1 - me;
-    const name = (side) => c.esc(c.room.players?.[g.p[side]]?.name || "?");
+    const me = c.g.p.indexOf(c.me);
     const M = replayMatch(c.room);
-    const st = M.cur;
-    autoActions(c, st, me, M);
-
-    // tahta durumu (oyun bittiyse son hali)
-    const real = st.real || R.initialReal();
-    let v = R.view(real, me);
-    const myMove = st.phase === "move" && st.side === me && !M.over;
-    if (local.pendKey !== st.pre) { local.pendKey = st.pre; local.pend = []; local.sel = null; }
-    let info = null, steps = [];
-    if (myMove) {
-      info = local.info?.key === st.pre ? local.info.val : (local.info = { key: st.pre, val: R.turnInfo(st.v, st.dl) }).val;
-      for (const m of local.pend) v = R.applyMove(v, m);
-      steps = R.nextSteps(st.v, st.dl, local.pend, info);
-    }
-    const done = myMove && local.pend.length === info.total;
-    const sources = new Set(steps.map((s) => s.from));
-    const targets = local.sel != null ? steps.filter((s) => s.from === local.sel) : [];
-
-    // durum yazısı
-    let status = "";
-    if (M.over) status = M.winner === me ? "Maçı kazandın! 🏆" : `${name(M.winner)} maçı kazandı`;
-    else if (st.phase?.startsWith("o-")) status = "Açılış zarları atılıyor…";
-    else if (st.phase === "roll") status = st.side === me ? "Sıra sende: zar at 🎲" : `${name(st.side)} zar atıyor…`;
-    else if (st.phase === "commit" || st.phase === "reveal") status = "Zar hazırlanıyor…";
-    else if (st.phase === "move") status = st.side === me ? (info.total === 0 ? "Oynanacak hamle yok 😕" : done ? "Hamlen tamam, onayla" : `Oyna: ${info.total - local.pend.length} hamle kaldı`) : `${name(st.side)} oynuyor…`;
-
-    // önceki oyunun sonucu (maç devam ediyorsa kısa süre göster)
-    const prevGame = M.games.length > 1 ? M.games[M.games.length - 2] : null;
-    const justEnded = prevGame && c.now() - prevGame.lastAt < BETWEEN_GAMES_MS + 1500;
-
-    // zar gösterimi
-    const showDice = st.phase === "move" ? st.dice : st.lastTurn?.dice;
-    const diceKey = st.pre + (st.dice || "");
-    const rolling = st.phase === "move" && local.diceKey !== diceKey;
-    if (rolling) { local.diceKey = diceKey; try { navigator.vibrate?.(30); } catch { /* */ } }
-
-    app.innerHTML = `
-      <section class="card center tv-card">
-        <div class="tv-head">
-          <span class="tv-pl ${st.side === opp && !M.over ? "on" : ""}"><i style="background:${CLR[opp]}"></i>${name(opp)} <small>${R.pips(R.view(real, opp))}</small></span>
-          <span class="tv-score">${M.score[opp]} – ${M.score[me]}<small>${g.target > 1 ? `${g.target} sayılık maç` : "tek oyun"}</small></span>
-          <span class="tv-pl ${st.side === me && !M.over ? "on" : ""}"><i style="background:${CLR[me]}"></i>Sen <small>${R.pips(R.view(real, me))}</small></span>
-        </div>
-        ${justEnded ? `<p class="tv-banner">${prevGame.winner === me ? "Bu oyunu kazandın" : `${name(prevGame.winner)} bu oyunu kazandı`}${prevGame.pts === 2 ? " · MARS! (2 sayı)" : ""}</p>` : ""}
-        ${boardSvg(v, me, sources, targets, local.sel, st.lastTurn && st.lastTurn.mover === opp ? st.lastTurn.moves : [])}
-        <div class="tv-bar">
-          <div class="tv-dice ${rolling ? "roll" : ""}">${showDice ? diceFaces(showDice, st.phase === "move" ? local.pend.map((m) => m.d) : null, st.dl) : ""}</div>
-          <p class="tv-status">${status}</p>
-        </div>
-        <div class="cd"><i id="cdbar"></i></div>
-        <div class="row" style="margin-top:.7rem">
-          ${st.phase === "roll" && st.side === me && !M.over ? `<button class="btn primary grow tv-roll" id="roll" ${local.rolled === st.pre ? "disabled" : ""}>🎲 Zar at</button>` : ""}
-          ${myMove && info.total > 0 ? `
-            <button class="btn grow" id="undo" ${local.pend.length ? "" : "disabled"}>↶ Geri al</button>
-            <button class="btn primary grow" id="send" ${done && local.sent !== st.pre ? "" : "disabled"}>Bitir ✓</button>` : ""}
-        </div>
-      </section>`;
-
-    // etkileşim
-    app.querySelectorAll("[data-pt]").forEach((el) => el.addEventListener("click", () => {
-      if (!myMove || done) return;
-      const pt = Number(el.dataset.pt);
-      const tgt = targets.filter((s) => s.to === pt).sort((a, b) => a.d - b.d)[0];
-      if (local.sel != null && tgt) { local.pend.push(tgt); local.sel = null; return this.render(c); }
-      if (sources.has(pt)) {
-        const opts = steps.filter((s) => s.from === pt);
-        const tos = [...new Set(opts.map((s) => s.to))];
-        if (tos.length === 1) { local.pend.push(opts.sort((a, b) => a.d - b.d)[0]); local.sel = null; } // tek gidiş varsa direkt oyna
-        else local.sel = local.sel === pt ? null : pt;
-        return this.render(c);
-      }
-      local.sel = null; this.render(c);
-    }));
-    const undo = document.getElementById("undo");
-    if (undo) undo.onclick = () => { local.pend.pop(); local.sel = null; this.render(c); };
-    const send = document.getElementById("send");
-    if (send) send.onclick = () => { local.sent = st.pre; c.input(st.pre + "m", { mv: enc(local.pend), at: Math.round(c.now()) }); };
-    const roll = document.getElementById("roll");
-    if (roll) roll.onclick = () => { local.rolled = st.pre; c.input(st.pre + "r", { v: R.randomHex(8), at: Math.round(c.now()) }); roll.disabled = true; };
-
-    // süre çubuğu
-    const total = st.phase === "move" ? MOVE_MS : st.phase === "roll" ? ROLL_MS : AUTO_WAIT_MS;
-    bar(c, st.pre + st.phase, st.lastAt + total, total);
+    autoActions(c, M.cur, me, M);
+    renderTavla(c, M, { replay: () => replayMatch(c.room), enc, BETWEEN_GAMES_MS, ROLL_MS, MOVE_MS, AUTO_WAIT_MS });
   },
 
   hostTick(c) {
@@ -233,6 +150,7 @@ export default {
       return;
     }
     const st = M.cur;
+    if (g.bot && g.p[st.side] === BOT) return botTick(c, st, M);
     const idle = c.now() - st.lastAt;
     const who = g.p[st.side];
     if (["o-commit", "o-reveal", "commit", "reveal", "o-roll"].includes(st.phase)) {
@@ -295,92 +213,31 @@ function autoActions(c, st, me, M) {
   }
 }
 
-// ---------- çizim ----------
-const W = 360, H = 310, PW = 24, X0 = 6, BX = 150, BW = 22, RX = 172, TRAY = 316, TOP = 6, BOT = 304, PH = 122, CR = 11;
-
-function colX(pt) {
-  if (pt <= 6) return RX + (6 - pt) * PW;
-  if (pt <= 12) return X0 + (12 - pt) * PW;
-  if (pt <= 18) return X0 + (pt - 13) * PW;
-  return RX + (pt - 19) * PW;
-}
-
-function boardSvg(v, me, sources, targets, sel, oppMoves) {
-  const tset = new Set(targets.map((t) => t.to));
-  const lastOpp = new Set(oppMoves.map((m) => m.to).filter((x) => x >= 1 && x <= 24).map((x) => 25 - x)); // rakibin son hamlesinin vardığı haneler
-  let s = `<svg xmlns="http://www.w3.org/2000/svg" class="tv-board" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tavla tahtası">
-    <defs><linearGradient id="wood" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#7a4a24"/><stop offset="1" stop-color="#5a3317"/></linearGradient>
-    <radialGradient id="ck0" cx=".35" cy=".35"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="${CLR[0]}"/></radialGradient>
-    <radialGradient id="ck1" cx=".35" cy=".35"><stop offset="0" stop-color="#5a524a"/><stop offset="1" stop-color="${CLR[1]}"/></radialGradient></defs>
-    <rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="url(#wood)"/>
-    <rect x="${X0}" y="${TOP}" width="${PW * 6}" height="${BOT - TOP}" fill="#d9c08f"/>
-    <rect x="${RX}" y="${TOP}" width="${PW * 6}" height="${BOT - TOP}" fill="#d9c08f"/>
-    <rect x="${BX}" y="${TOP}" width="${BW}" height="${BOT - TOP}" fill="#4a2a12"/>
-    <rect x="${TRAY}" y="${TOP}" width="${W - TRAY - 6}" height="${BOT - TOP}" rx="4" fill="#4a2a12"/>`;
-  // üçgenler
-  for (let pt = 1; pt <= 24; pt++) {
-    const x = colX(pt), top = pt >= 13;
-    const y0 = top ? TOP : BOT, y1 = top ? TOP + PH : BOT - PH;
-    const dark = pt % 2 === 0;
-    s += `<polygon points="${x},${y0} ${x + PW},${y0} ${x + PW / 2},${y1}" fill="${dark ? "#8c2f1b" : "#f2e6c9"}" ${lastOpp.has(pt) ? 'stroke="#ffd166" stroke-width="2"' : ""}/>`;
-  }
-  // pullar
-  const myClr = me, opClr = 1 - me;
-  const disc = (cx, cy, clr, label, glow) => `<circle cx="${cx}" cy="${cy}" r="${CR}" fill="url(#ck${clr})" stroke="${clr ? "#000" : "#9b8f7c"}" stroke-width="1" ${glow ? 'class="tv-src"' : ""}/>` +
-    (label ? `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="${clr ? "#fff" : "#222"}">${label}</text>` : "");
-  for (let pt = 1; pt <= 24; pt++) {
-    const n = Math.abs(v.p[pt]); if (!n) continue;
-    const mine = v.p[pt] > 0, top = pt >= 13, cx = colX(pt) + PW / 2;
-    const show = Math.min(n, 5);
-    for (let i = 0; i < show; i++) {
-      const cy = top ? TOP + CR + 1 + i * (CR * 2) : BOT - CR - 1 - i * (CR * 2);
-      s += disc(cx, cy, mine ? myClr : opClr, i === show - 1 && n > 5 ? n : "", mine && i === show - 1 && sources.has(pt));
-    }
-    if (sel === pt) s += `<rect x="${colX(pt) + 1}" y="${top ? TOP : BOT - PH}" width="${PW - 2}" height="${PH}" fill="none" stroke="#ffd166" stroke-width="2.5" rx="3"/>`;
-  }
-  // bar
-  const bx = BX + BW / 2;
-  for (let i = 0; i < v.bar[0]; i++) s += disc(bx, H / 2 + 18 + i * 20, myClr, i === Math.min(v.bar[0], 4) - 1 && v.bar[0] > 4 ? v.bar[0] : "", i === 0 && sources.has(R.BAR));
-  for (let i = 0; i < Math.min(v.bar[1], 4); i++) s += disc(bx, H / 2 - 18 - i * 20, opClr, "");
-  // toplanan pullar
-  const tw = W - TRAY - 12;
-  for (let i = 0; i < v.off[0]; i++) s += `<rect x="${TRAY + 3}" y="${BOT - 6 - i * 7}" width="${tw}" height="5" rx="1.5" fill="${CLR[myClr]}"/>`;
-  for (let i = 0; i < v.off[1]; i++) s += `<rect x="${TRAY + 3}" y="${TOP + 1 + i * 7}" width="${tw}" height="5" rx="1.5" fill="${CLR[opClr]}"/>`;
-  // hedef işaretleri
-  for (const t of tset) {
-    if (t === R.OFF) { s += `<rect x="${TRAY + 1}" y="${H / 2}" width="${W - TRAY - 8}" height="${BOT - H / 2}" fill="rgba(255,209,102,.35)" stroke="#ffd166" stroke-width="2" rx="4"/>`; continue; }
-    const top = t >= 13, n = Math.abs(v.p[t]);
-    const cy = top ? TOP + CR + 1 + Math.min(n, 4) * CR * 2 : BOT - CR - 1 - Math.min(n, 4) * CR * 2;
-    s += `<circle cx="${colX(t) + PW / 2}" cy="${cy}" r="${CR - 1}" fill="rgba(255,209,102,.55)" stroke="#ffd166" stroke-width="2"/>`;
-  }
-  // dokunma alanları
-  for (let pt = 1; pt <= 24; pt++) {
-    const top = pt >= 13;
-    s += `<rect data-pt="${pt}" x="${colX(pt)}" y="${top ? TOP : H / 2}" width="${PW}" height="${H / 2 - TOP}" fill="transparent"/>`;
-  }
-  s += `<rect data-pt="${R.BAR}" x="${BX}" y="${H / 2}" width="${BW}" height="${H / 2 - TOP}" fill="transparent"/>`;
-  s += `<rect data-pt="${R.OFF}" x="${TRAY}" y="${H / 2}" width="${W - TRAY}" height="${H / 2}" fill="transparent"/>`;
-  return s + "</svg>";
-}
-
-const PIPS = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
-function diceFaces(dice, used, dl) {
-  const all = dl || R.diceList(dice[0], dice[1]);
-  const usedLeft = used ? used.slice() : [];
-  return all.map((d) => {
-    const i = usedLeft.indexOf(d);
-    const u = i >= 0; if (u) usedLeft.splice(i, 1);
-    return `<span class="tv-die ${u ? "used" : ""}">${PIPS[d]}</span>`;
-  }).join("");
-}
-
-function bar(c, id, endAt, total) {
-  const set = () => { const b = document.getElementById("cdbar"); if (b) b.style.width = Math.max(0, Math.min(1, (endAt - c.now()) / total)) * 100 + "%"; };
-  set();
-  if (c.local.barId !== id) {
-    c.local.barId = id;
-    const tick = () => { if (c.local.barId !== id || c.room.state !== "play") return; set(); c.timer(tick, 250); };
-    c.timer(tick, 250);
+// ---------- bot: oda sahibinin telefonu botun adımlarını yapar ----------
+function botTick(c, st, M) {
+  const { local } = c;
+  local.botDone = local.botDone || {};
+  const key = st.pre + ":" + st.phase;
+  if (local.botDone[key]) return;
+  local.botDone[key] = true;
+  const at = () => Math.round(c.now());
+  const sKey = (k) => lsKey(c, "bot_" + k);
+  const prevGame = M.games.length > 1 ? M.games[M.games.length - 2] : null;
+  const pause = prevGame ? Math.max(0, prevGame.lastAt + BETWEEN_GAMES_MS - c.now()) : 0;
+  const act = (fn, ms) => c.timer(() => { if (c.room.state === "play") fn(); }, ms);
+  if (st.phase === "o-commit" || st.phase === "commit") {
+    const secret = R.randomHex(16);
+    try { localStorage.setItem(sKey(st.pre + "c"), secret); } catch { /* */ }
+    act(() => c.inputAs(st.pre + "c", BOT, { h: R.sha256(secret), at: at() }), st.phase === "o-commit" ? pause + 200 : 150);
+  } else if (st.phase === "o-reveal" || st.phase === "reveal") {
+    let secret = null;
+    try { secret = localStorage.getItem(sKey(st.pre + "c")); } catch { /* */ }
+    if (secret) act(() => c.inputAs(st.pre + "s", BOT, { s: secret, at: at() }), 150);
+  } else if (st.phase === "o-roll" || st.phase === "roll") {
+    act(() => c.inputAs(st.pre + "r", BOT, { v: R.randomHex(8), at: at() }), st.phase === "roll" ? 900 : 400);
+  } else if (st.phase === "move") {
+    const moves = chooseTurn(st.v, st.dl);
+    act(() => c.inputAs(st.pre + "m", BOT, { mv: enc(moves), at: at() }), 1500 + moves.length * 350); // düşünüyormuş gibi
   }
 }
 

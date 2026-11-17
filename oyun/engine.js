@@ -160,7 +160,8 @@ function ctx() {
     finish: () => update(R.roomRef, { state: "done" }),
     timer: (fn, ms) => { const t = setTimeout(fn, ms); R.timers.push(t); return t; },
     clearTimers: () => { R.timers.forEach(clearTimeout); R.timers = []; },
-    arena, hideArena, esc
+    arena, hideArena, esc,
+    leave: () => leave()
   };
 }
 
@@ -253,6 +254,7 @@ function renderLobby(room) {
         ${R.isHost
           ? `<button class="btn primary block" id="start" ${enough || game.soloTest ? "" : "disabled"}>${enough ? "Başlat →" : game.soloTest ? "Tek başına dene (puan yok)" : `${game.minPlayers - players.length} kişi daha bekleniyor`}</button>`
           : `<p class="center muted">Oda sahibinin başlatması bekleniyor…</p>`}
+        ${R.isHost && game.bot && players.length === 1 ? `<button class="btn accent block" id="startBot">🤖 Bilgisayara karşı oyna <small>(deneme, puan yok)</small></button>` : ""}
         <button class="btn block" id="leave">← Odadan çık</button>
       </div>
     </section>`;
@@ -276,6 +278,14 @@ function renderLobby(room) {
   app.querySelectorAll("[data-team]").forEach((b) => b.onclick = () => set(ref(db, `rooms/${R.code}/players/${state.hk}/team`), b.dataset.team));
   if (R.isHost) renderInviteBox(room);
   const start = document.getElementById("start");
+  const startBot = document.getElementById("startBot");
+  if (startBot) startBot.onclick = async () => {
+    startBot.disabled = true;
+    try {
+      const g = await game.start({ ...ctx(), players, vsBot: true });
+      await update(R.roomRef, { state: "play", g, in: null, rx: null, startedAt: serverTimestamp() });
+    } catch (e) { console.error(e); toast("Başlatılamadı."); startBot.disabled = false; }
+  };
   if (start) start.onclick = async () => {
     start.disabled = true;
     try {
