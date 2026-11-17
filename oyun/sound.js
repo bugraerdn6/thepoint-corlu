@@ -71,6 +71,27 @@ export const sfx = {
     const t = ctx.currentTime;
     noiseBurst(t, 0.28, 1800, 0.3, 0.7); noiseBurst(t + 0.08, 0.2, 3600, 0.12, 1.2);
   },
+  // zafer melodisi (kısa arpej)
+  win() {
+    if (isMuted() || !ctx) return;
+    const t = ctx.currentTime;
+    [523, 659, 784, 1047].forEach((f, i) => {
+      const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.value = f;
+      const g = ctx.createGain(); const d = t + i * 0.11;
+      g.gain.setValueAtTime(0.0001, d); g.gain.exponentialRampToValueAtTime(0.2, d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, d + (i === 3 ? 0.6 : 0.25));
+      o.connect(g).connect(ctx.destination); o.start(d); o.stop(d + 0.65);
+    });
+  },
+  // yenilgi: yumuşak inen iki ton
+  lose() {
+    if (isMuted() || !ctx) return;
+    const t = ctx.currentTime;
+    [[392, 0], [311, 0.18]].forEach(([f, d]) => {
+      const o = ctx.createOscillator(); o.type = "sine"; o.frequency.value = f;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.16, t + d + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.4);
+      o.connect(g).connect(ctx.destination); o.start(t + d); o.stop(t + d + 0.45);
+    });
+  },
   // "sıra sende": iki tonlu kısa zil
   turn() {
     if (isMuted() || !ctx) return;

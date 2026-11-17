@@ -847,3 +847,13 @@ body:has(.arena) .tabbar, body:has(.modal) .tabbar { display: none; }
 .opts.versus .opt .fill { background: rgba(255,255,255,.18); }
 .vsdot { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
   background: var(--paper); color: var(--olive-dark); font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+
+/* ===== Genel efektler ===== */
+.confetti { position: fixed; inset: 0; z-index: 120; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; top: -20px; animation: confFall var(--t) var(--d) cubic-bezier(.3,.6,.5,1) forwards; opacity: .95; }
+@keyframes confFall { to { transform: translate(var(--dx), 110vh) rotate(var(--rot)); opacity: .9; } }
+.trophy { font-size: 3.4rem; line-height: 1; animation: trophy 1s cubic-bezier(.2,.9,.3,1.4) both, trophyGlow 2s 1s ease-in-out infinite; filter: drop-shadow(0 6px 10px rgba(232,176,74,.5)); }
+@keyframes trophy { 0% { transform: translateY(-60px) scale(.3) rotate(-30deg); opacity: 0; } 60% { transform: translateY(6px) scale(1.15) rotate(8deg); opacity: 1; } 100% { transform: none; } }
+@keyframes trophyGlow { 50% { transform: scale(1.06); filter: drop-shadow(0 6px 16px rgba(232,176,74,.9)); } }
+.list li.rin { animation: rowIn .4s calc(var(--k) * 90ms + 200ms) both cubic-bezier(.2,.9,.3,1.1); }
+@keyframes rowIn { from { transform: translateX(-24px); opacity: 0; } to { transform: none; opacity: 1; } }

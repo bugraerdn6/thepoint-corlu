@@ -11,6 +11,7 @@ import { state, app, esc, toast, clearSubs, renderHome, addPoints, displayName }
 import { GAMES } from "./games/index.js";
 import { BOTS, isBotKey } from "./games/bots.js";
 import { access } from "./gate.js";
+import { sfx, buzz, unlock } from "./sound.js";
 
 const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 // Her oyun başlangıcında sabit, rastgele kimlik. startedAt sunucu saatiyle sonradan değişebildiği için
@@ -251,6 +252,8 @@ function renderLobby(room) {
   hideArena();
   const game = R.game;
   const players = playerList(room);
+  if (R.lobbyCount !== undefined && players.length > R.lobbyCount) { sfx.tick(); buzz(10); }
+  R.lobbyCount = players.length;
   const link = `${location.origin}${location.pathname}?oda=${R.code}`;
   const enough = players.length >= game.minPlayers;
   const myTeam = room.players?.[state.hk]?.team;
@@ -421,13 +424,14 @@ async function renderDone(room) {
   app.innerHTML = `
     <section class="card center">
       <p class="eyebrow">${game.emoji} ${esc(game.name)}</p>
-      <h1>${multi ? (iWon ? "Kazandın! 🏆" : `Kazanan: ${esc(res[0]?.name || "")}`) : "Deneme bitti"}</h1>
+      ${iWon || (!multi && winners.includes(state.hk)) ? `<div class="trophy">🏆</div>` : ""}
+      <h1>${multi ? (iWon ? "Kazandın!" : `Kazanan: ${esc(res[0]?.name || "")}`) : winners.includes(state.hk) ? "Kazandın!" : `Kazanan: ${esc(res[0]?.name || "")}`}</h1>
       <p class="muted" id="award" style="margin-top:.5rem">${multi ? "Puanın yazılıyor…" : botGame ? "🤖 Test oyunu: puan verilmedi." : "Puan için yeterli oyuncu yoktu."}</p>
     </section>
     <section class="card">
       <h3>Sonuçlar</h3>
       <ol class="list" style="margin-top:.4rem">
-        ${res.map((x, i) => `<li class="${x.k === state.hk ? "me" : ""}"><span class="rank">${i + 1}</span><span class="name">${esc(x.name)}</span><span class="val">${esc(x.label)}</span></li>`).join("")}
+        ${res.map((x, i) => `<li class="${x.k === state.hk ? "me" : ""} rin" style="--k:${i}"><span class="rank">${i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span><span class="name">${esc(x.name)}</span><span class="val">${esc(x.label)}</span></li>`).join("")}
       </ol>
       ${game.summary ? `<div style="margin-top:1rem">${game.summary(room)}</div>` : ""}
       <div class="stack" style="margin-top:1rem">
@@ -437,6 +441,12 @@ async function renderDone(room) {
       </div>
     </section>`;
   document.getElementById("leave").onclick = () => leave();
+  // oyun sonu efekti (bu oyun için bir kez)
+  const fxKey = `fx_${R.code}_${runOf(room)}`;
+  if (R.fxShown !== fxKey) {
+    R.fxShown = fxKey;
+    if (winners.includes(state.hk)) { confetti(); sfx.win(); buzz([30, 40, 30, 40, 80]); } else sfx.lose();
+  }
   const again = document.getElementById("again");
   if (again) again.onclick = () => update(R.roomRef, { state: "lobby", g: null, in: null });
   const rematch = document.getElementById("rematch");
@@ -543,6 +553,20 @@ export function watchInvites() {
     };
     document.body.appendChild(m);
   });
+}
+
+// ---------- konfeti ----------
+export function confetti(n = 90) {
+  const colors = ["#c1622f", "#e8b04a", "#5c6a3f", "#b7c68f", "#f2ead4", "#3b6a86", "#d97a44"];
+  const box = document.createElement("div");
+  box.className = "confetti";
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement("i");
+    p.style.cssText = `left:${Math.random() * 100}%;background:${colors[i % colors.length]};--dx:${(Math.random() - 0.5) * 160}px;--rot:${Math.random() * 720 - 360}deg;--d:${(Math.random() * 0.6).toFixed(2)}s;--t:${(2 + Math.random() * 1.4).toFixed(2)}s;width:${6 + Math.random() * 6}px;height:${8 + Math.random() * 8}px;border-radius:${Math.random() < 0.3 ? "50%" : "2px"}`;
+    box.appendChild(p);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 4200);
 }
 
 // ---------- tam ekran oyun alanı ----------
