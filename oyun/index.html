@@ -5,9 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Oyna | The Point Çorlu</title>
 <meta name="description" content="The Point müdavim ağı: masalar arası oyunlar, seviyeler ve ödüller.">
-<meta name="theme-color" content="#4b5733">
-<link rel="icon" type="image/jpeg" href="../images/favicon-180.jpg">
-<link rel="apple-touch-icon" href="../images/favicon-180.jpg">
+<meta name="theme-color" content="#2a3019">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Point">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Fraunces:ital,wght@1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -30,5 +35,6 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script type="module" src="app.js"></script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
 </body>
 </html>

@@ -6,6 +6,7 @@ import { CHECKIN_COOLDOWN_H, LEVELS, ROOM_TTL_MIN } from "./config.js";
 import { chooseVisibility, joinRoom, gameOf, leave, updatePresence, watchInvites } from "./engine.js";
 import { access, loadAccess, renderGate, verifyLocation, startLocationWatch, renderAdminCard } from "./gate.js";
 import { GAMES, UPCOMING } from "./games/index.js";
+import { CATS, META, coverSvg } from "./games/meta.js";
 import { checkNick, randomNick } from "./filter.js";
 
 const app = document.getElementById("app");
@@ -215,39 +216,59 @@ async function enter(hk) {
   renderHome();
 }
 
+const LS_TAB = "tp_tab", LS_LAST = "tp_last_game";
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch { /* */ } };
+
 export function renderHome() {
   clearSubs();
+  const tab = lsGet(LS_TAB) || "games";
   app.innerHTML = `
-    ${access.admin ? `<section class="card center" id="adminCard"></section>` : ""}
-    <section class="card" id="profile"><p class="muted">Profil yükleniyor…</p></section>
-    <section class="card">
-      <p class="eyebrow">Oyunlar</p>
-      <h2 style="margin-bottom:.9rem">Masalar arası</h2>
-      <div id="games"></div>
-    </section>
-    <section class="card">
-      <p class="eyebrow">Şu an</p>
-      <h2>Açık odalar</h2>
-      <ul class="list" id="rooms" style="margin-top:.5rem"><li class="muted">Bakılıyor…</li></ul>
-      <hr>
-      <form class="row" id="joinForm">
-        <div class="field grow"><input id="code" type="text" maxlength="4" autocapitalize="characters" placeholder="Oda kodu" style="text-transform:uppercase;letter-spacing:.2em"></div>
-        <button class="btn" type="submit">Katıl</button>
-      </form>
-    </section>
-    <section class="card">
-      <p class="eyebrow">Bu hafta</p>
-      <h2>Sıralama</h2>
-      <ol class="list" id="board" style="margin-top:.5rem"><li class="muted">Yükleniyor…</li></ol>
-    </section>
-    <p class="center"><button class="linkbtn" id="logout" style="color:var(--cream)">Çıkış yap</button></p>`;
+    <div class="home tab-${tab}">
+      <header class="strip" id="strip"><div class="sk sk-strip"></div></header>
+      <section class="tab-pane" data-pane="games">
+        <div id="installHint"></div>
+        ${access.admin ? `<button class="admin-mini" id="adminMini">🔑 Bu gecenin kodu: <b id="adminCode">…</b></button>` : ""}
+        <div id="quick"></div>
+        <div class="sec-h"><h3>Şu an oynanıyor</h3><form class="join-mini" id="joinForm"><input id="code" maxlength="4" autocapitalize="characters" placeholder="KOD" aria-label="Oda kodu"><button class="btn" type="submit">Katıl</button></form></div>
+        <div class="hscroll" id="rooms"><div class="room-card sk"></div><div class="room-card sk"></div></div>
+        <div id="cats"></div>
+      </section>
+      <section class="tab-pane" data-pane="board">
+        <div class="card"><p class="eyebrow">Bu hafta</p><h2>Sıralama</h2>
+          <ol class="list" id="board" style="margin-top:.5rem"><li class="sk sk-line"></li><li class="sk sk-line"></li><li class="sk sk-line"></li></ol></div>
+      </section>
+      <section class="tab-pane" data-pane="profile">
+        <section class="card" id="profile"><div class="sk sk-block"></div></section>
+        ${access.admin ? `<section class="card center" id="adminCard"></section>` : ""}
+        <p class="center"><button class="linkbtn" id="logout" style="color:var(--cream)">Çıkış yap</button></p>
+      </section>
+    </div>
+    <nav class="tabbar" id="tabbar">
+      <button data-tab="games"><span>🎮</span>Oyunlar</button>
+      <button data-tab="board"><span>🏆</span>Sıralama</button>
+      <button data-tab="profile"><span>👤</span>Profil</button>
+    </nav>`;
+
+  const setTab = (t) => {
+    lsSet(LS_TAB, t);
+    const home = app.querySelector(".home");
+    home.className = `home tab-${t}`;
+    app.querySelectorAll("#tabbar [data-tab]").forEach((b) => b.classList.toggle("on", b.dataset.tab === t));
+    window.scrollTo({ top: 0 });
+  };
+  app.querySelectorAll("#tabbar [data-tab]").forEach((b) => b.onclick = () => setTab(b.dataset.tab));
+  setTab(tab);
 
   document.getElementById("logout").onclick = logout;
   renderAdminCard(document.getElementById("adminCard"));
-  document.getElementById("games").innerHTML =
-    GAMES.map((g) => `<button class="game" data-game="${g.id}"><span class="ico">${g.emoji}</span><span class="grow"><div class="t">${esc(g.name)}</div><div class="d">${esc(g.desc)}</div></span></button>`).join("") +
-    UPCOMING.map((g) => `<div class="game soon"><span class="ico">${g.emoji}</span><span><div class="t">${esc(g.name)} <span class="tag">yakında</span></div><div class="d">${esc(g.desc)}</div></span></div>`).join("");
-  app.querySelectorAll("[data-game]").forEach((b) => b.onclick = () => chooseVisibility(b.dataset.game));
+  const adminMini = document.getElementById("adminMini");
+  if (adminMini) {
+    adminMini.onclick = () => setTab("profile");
+    get(ref(db, `gateAdmin/${dayIdNow()}`)).then((s) => { const el = document.getElementById("adminCode"); if (el) el.textContent = s.val()?.code || "yok"; }).catch(() => {});
+  }
+  renderInstallHint(document.getElementById("installHint"));
+  renderGames();
   document.getElementById("joinForm").onsubmit = (e) => {
     e.preventDefault();
     const c = document.getElementById("code").value.trim().toUpperCase();
@@ -261,13 +282,14 @@ export function renderHome() {
     if (state.profile && (!prev || prev.invites !== state.profile.invites || prev.nick !== state.profile.nick || prev.showIg !== state.profile.showIg)) updatePresence();
     if (!state.profile) return logout();
     if (!state.profile.nick && !document.querySelector(".modal")) showSettings(true);
+    renderStrip(setTab);
     renderProfile();
   }));
 
   // engellediklerim
   state.unsubs.push(onValue(ref(db, `blocks/${state.hk}`), (s) => { state.blocks = s.val() || {}; }));
 
-  // açık odalar
+  // şu an oynanan (herkese açık) odalar
   const since = serverNow() - ROOM_TTL_MIN * 60000;
   state.unsubs.push(onValue(query(ref(db, "rooms"), orderByChild("createdAt"), startAt(since)), (s) => {
     const el = document.getElementById("rooms");
@@ -279,10 +301,14 @@ export function renderHome() {
       if (r.state === "lobby" && r.visibility === "public" && gameOf(r.game) && !blocked && !r.kicked?.[state.hk]) rows.push({ code: c.key, ...r });
     });
     el.innerHTML = rows.length
-      ? rows.reverse().map((r) => `
-          <li><span class="ico">${gameOf(r.game).emoji}</span><span class="name">${esc(gameOf(r.game).name)} · ${esc(r.host)} · ${Object.keys(r.players || {}).length} kişi</span>
-          <button class="btn" style="min-height:38px;padding:.3rem 1rem" data-code="${esc(r.code)}">Katıl</button></li>`).join("")
-      : `<li class="muted">Şu an herkese açık oda yok. Bir oyun aç ve "Diğer masalar da katılsın"ı seç!</li>`;
+      ? rows.reverse().map((r) => {
+          const g = gameOf(r.game), n = Object.keys(r.players || {}).length;
+          return `<button class="room-card" data-code="${esc(r.code)}">
+            <span class="rc-cover">${coverSvg(g.id, g.emoji)}</span>
+            <span class="rc-body"><b>${esc(g.name)}</b><small>${esc(r.host)} · ${n}/${g.maxPlayers} kişi</small><em>Katıl →</em></span>
+          </button>`;
+        }).join("")
+      : `<div class="room-empty">Şu an herkese açık oda yok.<br><small>Bir oyun aç, "Diğer masalar da katılsın"ı seç.</small></div>`;
     el.querySelectorAll("[data-code]").forEach((b) => b.onclick = () => joinRoom(b.dataset.code));
   }));
 
@@ -293,13 +319,101 @@ export function renderHome() {
     const wk = weekId();
     const rows = [];
     s.forEach((c) => { const p = c.val(); if (p.weekId === wk && p.weekPts > 0) rows.push({ k: c.key, ...p }); });
-    rows.reverse();
+    rows.sort((a, b) => b.weekPts - a.weekPts); // veritabanının sırasına güvenme, burada da sırala
     el.innerHTML = rows.length
       ? rows.slice(0, 10).map((p, i) => `
-          <li class="${p.k === state.hk ? "me" : ""}"><span class="rank">${i + 1}</span>
+          <li class="${p.k === state.hk ? "me" : ""}"><span class="rank">${i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>
           <span class="name">${levelOf(p.visits || 0).cur.emoji} ${esc(displayName(p))}</span><span class="val">${p.weekPts}</span></li>`).join("")
       : `<li class="muted">Bu hafta henüz puan yok. İlk sen ol!</li>`;
   }));
+}
+
+// İş günü kimliği (gate.js ile aynı hesap): 06:00'dan ertesi 06:00'ya
+function dayIdNow() { return new Date(serverNow() + 3 * 3600000 - 6 * 3600000).toISOString().slice(0, 10); }
+
+// Oyunlar: hızlı başla + kategoriler
+function renderGames() {
+  const last = gameOf(lsGet(LS_LAST));
+  const quick = document.getElementById("quick");
+  if (quick) quick.innerHTML = last ? `
+    <button class="quick" id="quickBtn">
+      <span class="q-cover">${coverSvg(last.id, last.emoji)}</span>
+      <span class="q-body"><small>Hızlı başla</small><b>${esc(last.name)}</b><em>Yeni oda aç →</em></span>
+    </button>` : "";
+  const qb = document.getElementById("quickBtn");
+  if (qb) qb.onclick = () => openGame(last.id);
+
+  const cats = document.getElementById("cats");
+  cats.innerHTML = CATS.map((cat) => {
+    const live = GAMES.filter((g) => (META[g.id]?.cat || "party") === cat.id);
+    const soon = UPCOMING.filter((u) => META[u.name]?.cat === cat.id);
+    if (!live.length && !soon.length) return "";
+    return `
+      <div class="sec-h"><h3>${cat.emoji} ${esc(cat.name)}</h3></div>
+      <div class="hscroll gcards">
+        ${live.map((g) => `<button class="gcard" data-game="${g.id}">
+            <span class="gc-cover">${coverSvg(g.id, g.emoji)}</span>
+            <span class="gc-body"><b>${esc(g.name)}</b><small>${esc(META[g.id]?.people || "")}${META[g.id]?.mins ? " · " + esc(META[g.id].mins) : ""}</small></span>
+          </button>`).join("")}
+        ${soon.map((u) => `<div class="gcard soon">
+            <span class="gc-cover">${coverSvg(u.name, u.emoji, cat.id)}<i class="badge">yakında</i></span>
+            <span class="gc-body"><b>${esc(u.name)}</b><small>${esc(u.desc)}</small></span>
+          </div>`).join("")}
+      </div>`;
+  }).join("");
+  cats.querySelectorAll("[data-game]").forEach((b) => b.onclick = () => openGame(b.dataset.game));
+}
+
+function openGame(id) {
+  lsSet(LS_LAST, id);
+  chooseVisibility(id);
+}
+
+// Üst profil şeridi
+function renderStrip(setTab) {
+  const p = state.profile;
+  const el = document.getElementById("strip");
+  if (!el || !p) return;
+  const { cur } = levelOf(p.visits || 0);
+  const wk = weekId();
+  el.innerHTML = `
+    <button class="strip-me" id="stripMe">
+      <span class="avatar sm">${esc(displayName(p).replace("@", "")[0].toUpperCase())}</span>
+      <span class="strip-txt"><b>${esc(p.nick || "@" + p.handle)}</b><small>${cur.emoji} ${esc(cur.name)}</small></span>
+    </button>
+    <span class="strip-pts"><b>${p.points || 0}</b><small>puan</small></span>
+    <span class="strip-pts"><b>${p.weekId === wk ? p.weekPts || 0 : 0}</b><small>bu hafta</small></span>`;
+  document.getElementById("stripMe").onclick = () => setTab("profile");
+}
+
+// "Ana ekrana ekle" ipucu
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredInstall = e; renderInstallHint(document.getElementById("installHint")); });
+const isStandalone = () => window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true;
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+function renderInstallHint(el) {
+  if (!el || isStandalone() || lsGet("tp_install_x") === "1") { if (el) el.innerHTML = ""; return; }
+  if (!deferredInstall && !isIOS()) { el.innerHTML = ""; return; }
+  el.innerHTML = `
+    <div class="install">
+      <span class="ins-ico"><img src="icons/icon-192.png" alt=""></span>
+      <span class="ins-txt"><b>Uygulama gibi kullan</b><small>Ana ekrana ekle: tam ekran, tek dokunuşla açılır</small></span>
+      <button class="btn primary" id="insGo">Ekle</button>
+      <button class="ins-x" id="insX" aria-label="Kapat">✕</button>
+    </div>`;
+  document.getElementById("insX").onclick = () => { lsSet("tp_install_x", "1"); el.innerHTML = ""; };
+  document.getElementById("insGo").onclick = async () => {
+    if (deferredInstall) { deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch { /* */ } deferredInstall = null; el.innerHTML = ""; return; }
+    const m = document.createElement("div");
+    m.className = "modal";
+    m.innerHTML = `<div class="card center"><h2>Ana ekrana ekle</h2>
+      <ol class="ios-steps"><li>Alttaki <b>Paylaş</b> simgesine dokun <span class="ios-share">⬆︎</span></li><li><b>Ana Ekrana Ekle</b>'yi seç</li><li>Sağ üstte <b>Ekle</b>'ye dokun</li></ol>
+      <p class="muted small">Sonra The Point simgesinden aç: Tavla dahil her şey tam ekran olur.</p>
+      <button class="btn primary block" style="margin-top:1rem">Tamam</button></div>`;
+    m.onclick = (e) => { if (e.target === m || e.target.tagName === "BUTTON") m.remove(); };
+    document.body.appendChild(m);
+  };
 }
 
 function renderProfile() {
