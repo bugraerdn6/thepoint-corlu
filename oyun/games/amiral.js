@@ -10,7 +10,7 @@ const END_SHOW_MS = 7000;
 
 const key = (c) => `tp_fleet_${c.code}_${c.room.runId || c.room.startedAt}`;
 
-function randomFleet() {
+export function randomFleet() {
   for (;;) {
     const grid = Array.from({ length: N }, () => Array(N).fill(0));
     const ships = [];
@@ -55,7 +55,7 @@ function saveFleet(c, f) {
 }
 
 // Atış geçmişini çöz
-function replay(room) {
+export function replay(room) {
   const g = room.g;
   const shots = [];
   const hits = { [g.p[0]]: 0, [g.p[1]]: 0 }; // hedefe isabet sayısı

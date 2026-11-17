@@ -14,11 +14,11 @@ async function sha(s) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-const alive = (g) => g.order.filter((k) => (g.dice[k] || 0) > 0);
+export const alive = (g) => g.order.filter((k) => (g.dice[k] || 0) > 0);
 const totalDice = (g) => alive(g).reduce((a, k) => a + g.dice[k], 0);
 
 // Bu eldeki teklifler
-function bids(room) {
+export function bids(room) {
   const g = room.g;
   const list = [];
   const al = alive(g);

@@ -9,6 +9,8 @@ import {
 import { POINTS } from "./config.js";
 import { state, app, esc, toast, clearSubs, renderHome, addPoints, displayName } from "./app.js";
 import { GAMES } from "./games/index.js";
+import { BOTS, isBotKey } from "./games/bots.js";
+import { access } from "./gate.js";
 
 const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 // Her oyun başlangıcında sabit, rastgele kimlik. startedAt sunucu saatiyle sonradan değişebildiği için
@@ -102,6 +104,7 @@ export async function joinRoom(code) {
     R.room = s.val(); render();
     // oda sahibi: her değişimde hemen kontrol (aralıklı kontrolü beklemeden)
     if (R.isHost && R.room?.state === "play" && !R.advancing) { try { R.game.hostTick(ctx()); } catch (e) { console.error(e); } }
+    driveBots();
   }));
   state.unsubs.push(onChildAdded(query(ref(db, `rooms/${code}/rx`), limitToLast(1)), (s) => {
     const r = s.val();
@@ -111,8 +114,21 @@ export async function joinRoom(code) {
     if (R?.room?.state === "play" && !R.advancing) {
       try { R.game.hostTick(ctx()); } catch (e) { console.error(e); }
     }
+    driveBots();
   }, 250);
 }
+
+// Test oyuncuları: oda sahibinin telefonu her botun adımını yapar
+function driveBots() {
+  if (!R || !R.isHost || R.room?.state !== "play") return;
+  const fn = BOTS[R.game.id];
+  if (!fn) return;
+  for (const k of Object.keys(R.room.players || {})) {
+    if (!isBotKey(k)) continue;
+    try { fn(ctx(), k); } catch (e) { console.error("bot", k, e); }
+  }
+}
+const hasBots = (room) => Object.keys(room?.players || {}).some(isBotKey);
 
 export async function leave(silent) {
   if (!R) return;
@@ -255,7 +271,7 @@ function renderLobby(room) {
         ${players.map((p) => `
           <li class="${p.k === state.hk ? "me" : ""}">
             <span class="name">${game.teams && p.team ? TEAMS[p.team].emoji + " " : ""}${esc(p.name)}${room.hostHk === p.k ? " 👑" : ""}</span>
-            ${p.k !== state.hk ? `<button class="btn" style="min-height:36px;padding:.2rem .8rem" data-menu="${esc(p.k)}" aria-label="Seçenekler">⋯</button>` : ""}
+            ${p.k !== state.hk && !isBotKey(p.k) ? `<button class="btn" style="min-height:36px;padding:.2rem .8rem" data-menu="${esc(p.k)}" aria-label="Seçenekler">⋯</button>` : ""}
           </li>`).join("")}
       </ul>
       ${game.teams ? `
@@ -277,6 +293,12 @@ function renderLobby(room) {
           ? `<button class="btn primary block" id="start" ${enough || game.soloTest ? "" : "disabled"}>${enough ? "Başlat →" : game.soloTest ? "Tek başına dene (puan yok)" : `${game.minPlayers - players.length} kişi daha bekleniyor`}</button>`
           : `<p class="center muted">Oda sahibinin başlatması bekleniyor…</p>`}
         ${R.isHost && game.bot && players.length === 1 ? `<button class="btn accent block" id="startBot">🤖 Bilgisayara karşı oyna <small>(deneme, puan yok)</small></button>` : ""}
+        ${R.isHost && access.admin && (BOTS[game.id] || game.id === "tavla") ? `
+          <div class="row" style="gap:.4rem">
+            <button class="btn grow" id="addBot" ${players.length >= game.maxPlayers ? "disabled" : ""}>🤖 Test oyuncusu ekle</button>
+            ${players.some((p) => isBotKey(p.k)) ? `<button class="btn" id="rmBots">Botları çıkar</button>` : ""}
+          </div>
+          <p class="muted small center">Sadece yöneticiler görür · botlu oyunlarda puan verilmez</p>` : ""}
         <button class="btn block" id="leave">← Odadan çık</button>
       </div>
     </section>`;
@@ -299,6 +321,21 @@ function renderLobby(room) {
   });
   app.querySelectorAll("[data-team]").forEach((b) => b.onclick = () => set(ref(db, `rooms/${R.code}/players/${state.hk}/team`), b.dataset.team));
   if (R.isHost) renderInviteBox(room);
+  const addBot = document.getElementById("addBot");
+  if (addBot) addBot.onclick = () => {
+    const used = new Set(Object.keys(room.players || {}));
+    let n = 1; while (used.has(`__bot${n}`)) n++;
+    const name = `🤖 Test ${n}`;
+    const patch = { [`players/__bot${n}`]: { name, at: serverTimestamp(), bot: true } };
+    if (game.teams) { const cnt = { A: 0, B: 0 }; players.forEach((p) => { if (p.team) cnt[p.team]++; }); patch[`players/__bot${n}`].team = cnt.A <= cnt.B ? "A" : "B"; }
+    update(R.roomRef, patch);
+  };
+  const rmBots = document.getElementById("rmBots");
+  if (rmBots) rmBots.onclick = () => {
+    const patch = {};
+    Object.keys(room.players || {}).filter(isBotKey).forEach((k) => { patch[`players/${k}`] = null; });
+    update(R.roomRef, patch);
+  };
   const start = document.getElementById("start");
   const startBot = document.getElementById("startBot");
   if (startBot) startBot.onclick = async () => {
@@ -377,14 +414,15 @@ async function renderDone(room) {
     .filter((r) => room.players?.[r.k]);
   const best = res[0]?.score;
   const winners = res.filter((r) => r.score === best).map((r) => r.k);
-  const multi = players.length >= game.minPlayers && players.length >= 2;
+  const botGame = hasBots(room);
+  const multi = players.length >= game.minPlayers && players.length >= 2 && !botGame;
   const iWon = multi && winners.includes(state.hk);
 
   app.innerHTML = `
     <section class="card center">
       <p class="eyebrow">${game.emoji} ${esc(game.name)}</p>
       <h1>${multi ? (iWon ? "Kazandın! 🏆" : `Kazanan: ${esc(res[0]?.name || "")}`) : "Deneme bitti"}</h1>
-      <p class="muted" id="award" style="margin-top:.5rem">${multi ? "Puanın yazılıyor…" : "Puan için yeterli oyuncu yoktu."}</p>
+      <p class="muted" id="award" style="margin-top:.5rem">${multi ? "Puanın yazılıyor…" : botGame ? "🤖 Test oyunu: puan verilmedi." : "Puan için yeterli oyuncu yoktu."}</p>
     </section>
     <section class="card">
       <h3>Sonuçlar</h3>

@@ -9,7 +9,7 @@ const TEAM_LABEL = { A: "🔵 Mavi", B: "🟠 Turuncu" };
 const other = (t) => (t === "A" ? "B" : "A");
 
 // Bir turdaki kart sonuçlarını sırayla çöz: her kart için ilk geçerli girdi (en erken) kazanır
-function resolveTurn(room, turn) {
+export function resolveTurn(room, turn) {
   const g = room.g;
   const d = g.order[turn];
   const out = [];

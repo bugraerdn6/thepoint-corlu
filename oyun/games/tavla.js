@@ -150,7 +150,7 @@ export default {
       return;
     }
     const st = M.cur;
-    if (g.bot && g.p[st.side] === BOT) return botTick(c, st, M);
+    if (String(g.p[st.side]).startsWith("__bot")) return botTick(c, st, M, g.p[st.side]);
     const idle = c.now() - st.lastAt;
     const who = g.p[st.side];
     if (["o-commit", "o-reveal", "commit", "reveal", "o-roll"].includes(st.phase)) {
@@ -227,7 +227,7 @@ function autoActions(c, st, me, M) {
 }
 
 // ---------- bot: oda sahibinin telefonu botun adımlarını yapar ----------
-function botTick(c, st, M) {
+function botTick(c, st, M, BOT) {
   const { local } = c;
   local.botDone = local.botDone || {};
   const key = st.pre + ":" + st.phase;
