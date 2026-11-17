@@ -1,6 +1,7 @@
 // 🤥 Blöf — bütün deste dağıtılır. Sıradaki sayı As'tan başlayıp her hamlede bir artar.
 // Oyuncu 1–4 kartı kapalı koyup "n tane X" der; herkes "Blöf!" diyebilir. Elini ilk bitiren kazanır.
-import { newDeck, RANKS, rankOf, cardHtml, backs, turnBar, nextOf, rankName } from "./cards.js";
+import { newDeck, RANKS, rankOf, cardHtml, fanHtml, backFan, turnBar, nextOf, rankName, fly, rectOf, burst } from "./cards.js";
+import { sfx, buzz, unlock } from "../sound.js";
 
 const TURN_MS = 30000;
 const LAST_CARD_WAIT_MS = 7000; // son kartını koyana blöf demek için süre
@@ -33,50 +34,86 @@ export default {
     const lp = g.lastPlay;
     const canCall = lp && lp.k !== c.me && local.called !== lp.no && !c.inputs[`x${lp.no}`]?.[c.me];
     const rv = g.reveal;
+    const pileN = (g.pile || []).length;
+    // animasyon tetikleyicileri
+    const newPlay = lp && local.lpNo !== lp.no && local.lpNo !== undefined;
+    const rvKey = rv ? `${rv.caller}|${rv.k}|${rv.taken}|${rv.cards.join("")}` : null;
+    const newReveal = rv && local.rvKey !== rvKey;
+    if (lp) local.lpNo = lp.no; else if (local.lpNo === undefined) local.lpNo = -1;
+    local.rvKey = rvKey;
 
     app.innerHTML = `
-      <section class="card center">
-        <p class="eyebrow">🤥 Blöf · Yerde ${(g.pile || []).length} kart</p>
+      <section class="card center ptable">
+        <p class="eyebrow">🤥 Blöf</p>
         <div class="opp-row">${g.order.filter((k) => k !== c.me).map((k) => `
-          <div class="opp ${g.turn === k ? "on" : ""}"><b>${name(k)}</b>${backs((g.hands?.[k] || []).length)}</div>`).join("")}</div>
+          <div class="opp ${g.turn === k ? "on" : ""}" data-opp="${c.esc(k)}"><b>${name(k)}</b>${backFan((g.hands?.[k] || []).length)}</div>`).join("")}</div>
+        <div class="felt pfelt bfelt" id="bFelt">
+          <div class="ppile" id="bPile">
+            ${Array.from({ length: Math.min(pileN, 6) }, (_, i) => `<span class="under" style="--r:${(i * 37) % 24 - 12}deg;--dx:${(i * 13) % 14 - 7}px">${cardHtml(null)}</span>`).join("")}
+            ${pileN ? "" : `<span class="pempty">Yer boş</span>`}
+          </div>
+          <div class="bclaim">${lp ? `<small>${name(lp.k)}</small><b>${lp.n} × ${rankName(lp.claim)}</b>` : `<small>sıradaki</small><b>${rankName(claim)}</b>`}</div>
+          <div class="pcount">${pileN ? `yerde ${pileN} kart` : ""}</div>
+        </div>
         ${rv ? `
           <div class="reveal ${rv.lie ? "lie" : "truth"}">
             <p><b>${name(rv.caller)}</b> "Blöf!" dedi → ${name(rv.k)} ${rv.n} tane ${rankName(rv.claim)} demişti:</p>
-            <div class="hand small">${rv.cards.map((x) => cardHtml(x, { cls: rankOf(x) === rv.claim ? "" : "wrongc" })).join("")}</div>
+            <div class="rv-cards">${rv.cards.map((x, i) => `<span class="flipcard ${newReveal ? "anim" : ""}" style="--d:${i * 140}ms">${cardHtml(null, { cls: "fb" })}${cardHtml(x, { cls: "ff " + (rankOf(x) === rv.claim ? "" : "wrongc") })}</span>`).join("")}</div>
             <p class="big-result" style="margin:.3rem 0">${rv.lie ? "YALANMIŞ! 🤥" : "DOĞRUYMUŞ! 😇"} ${name(rv.loser)} ${rv.taken} kartı aldı</p>
           </div>` : ""}
-        ${lp ? `<p class="big-result">${name(lp.k)}: "${lp.n} tane <b>${rankName(lp.claim)}</b>"</p>` : `<p class="muted">İlk hamle bekleniyor</p>`}
         ${g.pendingWin ? `<p class="small" style="color:var(--terracotta)">⚠️ ${name(g.pendingWin.k)} son kartını koydu! İnanmıyorsan hemen Blöf de.</p>` : ""}
         ${canCall ? `<button class="btn accent block buzz" id="call" style="margin-top:.4rem">🤥 Blöf!</button>` : ""}
         <div class="cd" style="margin-top:.6rem"><i id="cdbar"></i></div>
         <p style="margin:.5rem 0">${myTurn ? `Sıra sende: <b>${rankName(claim)}</b> koy (1–4 kart seç)` : g.pendingWin ? "Bekleniyor…" : `${name(g.turn)} sırada · istenen: <b>${rankName(claim)}</b>`}</p>
-        <div class="hand">${hand.map((card) => cardHtml(card, { data: `data-card="${c.esc(card)}"`, cls: local.sel.includes(card) ? "sel" : "", disabled: !myTurn })).join("")}</div>
+        <div class="phand" id="bHand">${fanHtml(hand, { dataOf: (card) => `data-card="${c.esc(card)}"`, clsOf: (card) => (local.sel.includes(card) ? "sel" : ""), disabled: !myTurn, cls: myTurn ? "active" : "" })}</div>
         ${myTurn ? `<button class="btn primary block" id="play" style="margin-top:.8rem" ${local.sel.length ? "" : "disabled"}>${local.sel.length ? `${local.sel.length} tane ${rankName(claim)} koy →` : "Kart seç"}</button>` : ""}
-        <p class="muted small" style="margin-top:.5rem">Elinde ${hand.length} kart</p>
+        <p class="muted small" id="bMe" style="margin-top:.5rem">Elinde ${hand.length} kart</p>
       </section>`;
 
     app.querySelectorAll("[data-card]").forEach((b) => b.onclick = () => {
       if (!myTurn) return;
+      unlock();
       const card = b.dataset.card;
       if (local.sel.includes(card)) local.sel = local.sel.filter((x) => x !== card);
       else if (local.sel.length < 4) local.sel.push(card);
+      sfx.tick();
       this.render(c);
     });
     const play = document.getElementById("play");
     if (play) play.onclick = () => {
       if (!local.sel.length) return;
       local.sent = g.seq;
+      local.fromRects = local.sel.map((x) => rectOf(app.querySelector(`[data-card="${CSS.escape(x)}"]`)));
       c.input(`a${g.seq}`, { cards: local.sel });
       local.sel = [];
     };
     const call = document.getElementById("call");
     if (call) call.onclick = () => {
+      unlock();
       local.called = lp.no;
       c.input(`x${lp.no}`, { at: Math.round(c.now()) });
       call.disabled = true;
+      buzz(30);
     };
     if (g.pendingWin) turnBar(c, `w${g.seq}`, g.pendingWin.until, LAST_CARD_WAIT_MS);
     else turnBar(c, `b${g.seq}`, g.lastAt + TURN_MS, TURN_MS);
+
+    // ---- animasyonlar ----
+    const boxOf = (k) => (k === c.me ? document.getElementById("bMe") : app.querySelector(`[data-opp="${CSS.escape(k)}"]`));
+    const pileRect = () => { const p = rectOf(document.getElementById("bPile")); return p ? { x: p.x + p.w / 2 - 24, y: p.y + p.h / 2 - 34, w: 48, h: 68 } : null; };
+    if (newPlay) {
+      const froms = lp.k === c.me && local.fromRects?.length ? local.fromRects : Array.from({ length: lp.n }, () => rectOf(boxOf(lp.k)));
+      local.fromRects = null;
+      froms.forEach((f, i) => fly(cardHtml(null), f, pileRect(), { ms: 340, delay: i * 90, rotate: (i - 1) * 8 }));
+      setTimeout(() => sfx.checker(), 300);
+    }
+    if (newReveal) {
+      burst(document.getElementById("bFelt"), rv.lie ? "BLÖF! 🤥" : "DOĞRU! 😇", rv.lie ? "red" : "green");
+      sfx.hit(); buzz([30, 60, 30]);
+      // yerdeki kartlar kaybedene süpürülür
+      const dest = rectOf(boxOf(rv.loser));
+      setTimeout(() => { for (let i = 0; i < Math.min(rv.taken, 6); i++) fly(cardHtml(null), pileRect(), dest, { ms: 420, delay: i * 70, scaleTo: 0.45, rotate: 25 }); }, 900);
+    }
   },
 
   hostTick(c) {

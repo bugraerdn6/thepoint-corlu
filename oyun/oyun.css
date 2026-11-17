@@ -617,3 +617,86 @@ body:has(.arena) .tabbar, body:has(.modal) .tabbar { display: none; }
 .gcards.hscroll .gcard { flex: none; width: 150px; scroll-snap-align: start; }
 .gcards.hscroll .gc-cover { aspect-ratio: 16 / 10; }
 .gc-body small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ===== Kartlar v2 ===== */
+.pcard {
+  position: relative; display: inline-block; width: 52px; height: 74px; padding: 0; border-radius: 7px;
+  background: linear-gradient(160deg, #fffefa, #f3ecda); border: 1px solid rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18), 0 6px 14px -6px rgba(0, 0, 0, 0.35); color: #1f1c17; font: inherit; line-height: 1; cursor: pointer; vertical-align: top;
+}
+.pcard.red { color: #b8321f; }
+.pcard .ci { position: absolute; display: flex; flex-direction: column; align-items: center; font-family: 'Jost', sans-serif; }
+.pcard .ci b { font-weight: 600; font-size: 0.86rem; letter-spacing: -0.03em; }
+.pcard .ci i { font-style: normal; font-size: 0.7rem; margin-top: 1px; }
+.pcard .ci.tl { top: 4px; left: 4px; }
+.pcard .ci.br { bottom: 4px; right: 4px; transform: rotate(180deg); }
+.pcard .pip, .pcard .ace { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.55rem; }
+.pcard .ace { font-size: 2.1rem; }
+.pcard .court { position: absolute; inset: 14px 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid currentColor; border-radius: 4px; background: repeating-linear-gradient(45deg, transparent 0 4px, rgba(193, 98, 47, 0.07) 4px 8px); }
+.pcard .court b { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 1.5rem; line-height: 0.9; }
+.pcard .court i { font-style: normal; font-size: 0.85rem; }
+.pcard.big { width: 66px; height: 94px; }
+.pcard.big .ci b { font-size: 1.05rem; } .pcard.big .pip { font-size: 2rem; } .pcard.big .ace { font-size: 2.7rem; } .pcard.big .court b { font-size: 1.9rem; }
+.pcard.back { background: #5c6a3f; border-color: #2a3019; overflow: hidden; }
+.pcard.back .bk { position: absolute; inset: 3px; border-radius: 5px; border: 1px solid rgba(242, 234, 212, 0.55);
+  background: radial-gradient(circle at 50% 50%, #c1622f 0 18%, transparent 19%), repeating-linear-gradient(45deg, #5c6a3f 0 5px, #4b5733 5px 10px); }
+.pcard.back .bk::after { content: "P"; position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Cormorant Garamond', serif; font-weight: 700; color: #f2ead4; font-size: 0.95rem; }
+.pcard.mini { width: 20px; height: 29px; border-radius: 3px; }
+.pcard.mini .bk { inset: 1.5px; border-radius: 2px; } .pcard.mini .bk::after { display: none; }
+.pcard:disabled { cursor: default; }
+.pcard.wrongc { box-shadow: 0 0 0 3px var(--stop); }
+
+/* yelpaze el */
+.phand { min-height: 100px; display: flex; justify-content: center; padding-top: 14px; }
+.fan { display: flex; justify-content: center; }
+.fan .pcard { width: 58px; height: 84px; transform-origin: 50% 120%;
+  transform: rotate(var(--rot)) translateY(var(--lift)); transition: transform 0.18s cubic-bezier(.2,.9,.3,1.2), box-shadow 0.18s; }
+.fan .pcard:first-child { margin-left: 0; }
+.fan.active .pcard:not(:disabled):hover, .fan .pcard.sel { transform: rotate(var(--rot)) translateY(calc(var(--lift) - 16px)); box-shadow: 0 0 0 2.5px var(--terracotta), 0 10px 18px -6px rgba(0,0,0,.45); }
+.fan.active .pcard:not(:disabled):active { transform: rotate(var(--rot)) translateY(calc(var(--lift) - 22px)) scale(1.04); }
+.fan .pcard.played { opacity: 0.25; }
+.fan .pcard .ci b { font-size: 0.95rem; } .fan .pcard .pip { font-size: 1.7rem; }
+
+/* rakip eli */
+.bfan { position: relative; display: inline-flex; align-items: center; height: 32px; padding-left: 4px; }
+.bfan .pcard.mini { margin-left: -12px; transform: rotate(calc((var(--i) - var(--n) / 2) * 6deg)); transform-origin: 50% 140%; }
+.bfan .pcard.mini:first-child { margin-left: 0; }
+.bfan em { font-style: normal; font-size: 0.75rem; font-weight: 600; margin-left: 6px; }
+
+/* masa */
+.pfelt { position: relative; min-height: 136px; margin: 0.7rem 0; border-radius: 18px; display: grid; grid-template-columns: 70px 1fr 70px; align-items: center;
+  background: radial-gradient(ellipse at 50% 40%, #3f6b4c, #284633 75%); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.15), inset 0 6px 18px rgba(0, 0, 0, 0.3); }
+.pdeck { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.pdeck .pcard { box-shadow: 2px 2px 0 #2a3019, 4px 4px 0 #2a3019aa; }
+.pdeck em { font-style: normal; color: #e6f0e8; font-size: 0.72rem; font-weight: 600; }
+.ppile { position: relative; height: 110px; display: grid; place-items: center; }
+.ppile .under { position: absolute; transform: translateX(var(--dx, 0)) rotate(var(--r)); }
+.ppile .ptop { position: relative; z-index: 2; }
+.ppile .ptop .pcard { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45); }
+.pempty { color: rgba(230, 240, 232, 0.7); font-size: 0.85rem; }
+.pcount { color: rgba(230, 240, 232, 0.8); font-size: 0.75rem; text-align: center; }
+.pmsg { min-height: 1.4em; margin: 0; }
+.bclaim { position: absolute; left: 10px; top: 8px; display: flex; flex-direction: column; align-items: flex-start; color: #f2ead4; text-align: left; }
+.bclaim small { font-size: 0.68rem; opacity: 0.8; }
+.bclaim b { font-family: 'Jost', sans-serif; font-weight: 600; font-size: 1.05rem; }
+.bfelt { grid-template-columns: 1fr; }
+.bfelt .pcount { position: absolute; right: 10px; bottom: 8px; }
+
+/* uçan kart, büyük yazı */
+.card-fly { position: fixed; z-index: 90; pointer-events: none; will-change: transform; }
+.card-fly .pcard { width: 100%; height: 100%; }
+.card-burst { position: fixed; z-index: 95; transform: translate(-50%, -50%); pointer-events: none; font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 2.6rem; color: #fff;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.5); white-space: nowrap; animation: burst 1.4s cubic-bezier(.2,.9,.3,1.3) forwards; }
+.card-burst.gold { color: #ffd77a; } .card-burst.red { color: #ff8a6a; } .card-burst.green { color: #b7e6a2; }
+@keyframes burst { 0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; } 25% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; } 70% { transform: translate(-50%, -60%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -90%) scale(0.95); opacity: 0; } }
+
+/* çevrilerek açılan kartlar (Blöf) */
+.rv-cards { display: flex; justify-content: center; gap: 6px; margin: 0.4rem 0; }
+.flipcard { position: relative; width: 52px; height: 74px; perspective: 400px; }
+.flipcard .pcard { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; transition: transform 0.5s; }
+.flipcard .fb { transform: rotateY(180deg); }
+.flipcard .ff { transform: rotateY(0deg); }
+.flipcard.anim .ff { animation: flipIn 0.6s var(--d) both; }
+.flipcard.anim .fb { animation: flipOut 0.6s var(--d) both; }
+@keyframes flipIn { from { transform: rotateY(-180deg); } to { transform: rotateY(0deg); } }
+@keyframes flipOut { from { transform: rotateY(0deg); } to { transform: rotateY(180deg); } }
