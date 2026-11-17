@@ -59,6 +59,18 @@ export const sfx = {
     thump(t, 150, 0.12, 0.45); noiseBurst(t, 0.05, 1400, 0.4, 2);
   },
   tick() { if (!isMuted() && ctx) noiseBurst(ctx.currentTime, 0.015, 3500, 0.12, 6); },
+  // patlama (Amiral Battı isabet)
+  boom() {
+    if (isMuted() || !ctx) return;
+    const t = ctx.currentTime;
+    thump(t, 90, 0.4, 0.6); noiseBurst(t, 0.35, 600, 0.55, 0.8); noiseBurst(t + 0.05, 0.2, 2200, 0.2, 1.5);
+  },
+  // su sıçraması (ıska)
+  splash() {
+    if (isMuted() || !ctx) return;
+    const t = ctx.currentTime;
+    noiseBurst(t, 0.28, 1800, 0.3, 0.7); noiseBurst(t + 0.08, 0.2, 3600, 0.12, 1.2);
+  },
   // "sıra sende": iki tonlu kısa zil
   turn() {
     if (isMuted() || !ctx) return;

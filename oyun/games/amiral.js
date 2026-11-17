@@ -1,3 +1,5 @@
+import { sfx, buzz, unlock } from "../sound.js";
+import { burst } from "./cards.js";
 // 🚢 Amiral Battı — 2 kişi, 8×8. Gemiler sadece sahibinin telefonunda durur; başta yerleşimin hash'i yazılır,
 // oyun sonunda yerleşim açılır ve herkesin telefonu hash ile doğrular.
 const N = 8;
@@ -109,7 +111,7 @@ export default {
           <p class="eyebrow">🚢 Amiral Battı · Hazırlık</p>
           <h2>${iReady ? "Hazırsın ✓" : "Filonu yerleştir"}</h2>
           <p class="muted small">${iReady ? `${name(opp)} bekleniyor…` : "Gemiler birbirine değmeyecek şekilde rastgele dizildi."}</p>
-          ${gridHtml(c, (x, y) => (shipAt(fleet.ships, x, y) ? "ship" : ""), false)}
+          ${gridHtml(c, () => "", false, null, false, { ships: fleet.ships })}
           ${iReady ? "" : `<div class="row" style="margin-top:1rem"><button class="btn grow" id="shuf">🔀 Karıştır</button><button class="btn primary grow" id="rdy">Hazırım ✓</button></div>`}
           <div class="cd" style="margin-top:1rem"><i id="cdbar"></i></div>
         </section>`;
@@ -150,6 +152,13 @@ export default {
     const lastTheirs = theirShots[theirShots.length - 1];
     const hitsOnOpp = myShots.filter((s) => s.hit).length;
     const hitsOnMe = theirShots.filter((s) => s.hit).length;
+    const oppSunk = sunkShips(myShots);
+    // yeni sonuçlanan atış → animasyon + ses
+    const seen = local.seenShots ?? st.shots.length;
+    const newShot = st.shots.length > seen ? st.shots[st.shots.length - 1] : null;
+    local.seenShots = st.shots.length;
+    const freshMine = newShot && newShot.shooter === c.me ? newShot : null;
+    const freshTheirs = newShot && newShot.shooter !== c.me ? newShot : null;
 
     app.innerHTML = `
       <section class="card center">
@@ -158,16 +167,20 @@ export default {
         ${lastMine ? `<p class="muted small">Son atışın: ${lastMine.hit ? (lastMine.sunk ? `💥 Batırdın! (${lastMine.sunk}'lü gemi)` : "🔥 İsabet!") : "💧 Iska"}</p>` : ""}
         <div class="cd"><i id="cdbar"></i></div>
         <h3 style="margin-top:.8rem">Rakip: ${name(opp)} <span class="muted small">(${hitsOnOpp}/${TOTAL})</span></h3>
-        ${gridHtml(c, (x, y) => { const s = myShots.find((q) => q.x === x && q.y === y); return s ? (s.hit ? "hit" : "miss") : ""; }, myTurn, myShots)}
+        ${gridHtml(c, (x, y) => { const s = myShots.find((q) => q.x === x && q.y === y); return s ? (s.hit ? "hit" : "miss") : ""; }, myTurn, myShots, false, { ships: oppSunk, hullCls: "sunk", fresh: freshMine })}
         <h3 style="margin-top:1rem">Senin filon <span class="muted small">(${hitsOnMe}/${TOTAL} isabet aldı)</span></h3>
         ${gridHtml(c, (x, y) => {
           const s = theirShots.find((q) => q.x === x && q.y === y);
-          const ship = fleet && shipAt(fleet.ships, x, y);
-          return (ship ? "ship " : "") + (s ? (s.hit ? "hit" : "miss") : "") + (lastTheirs && lastTheirs.x === x && lastTheirs.y === y ? " last" : "");
-        }, false, null, true)}
+          return (s ? (s.hit ? "hit" : "miss") : "") + (lastTheirs && lastTheirs.x === x && lastTheirs.y === y ? " last" : "");
+        }, false, null, true, { ships: fleet ? fleet.ships : [], sunk: new Set(sunkShips(theirShots).map(shipKey)), fresh: freshTheirs })}
       </section>`;
+    if (newShot) {
+      if (newShot.hit) { sfx.boom(); buzz(newShot.sunk ? [60, 40, 120] : [40, 30, 40]); } else { sfx.splash(); buzz(10); }
+      if (newShot.sunk) c.timer(() => burst(app.querySelector(newShot.shooter === c.me ? ".bs:not(.mine)" : ".bs.mine"), newShot.shooter === c.me ? "BATIRDIN! ⚓" : "Gemin battı 😬", newShot.shooter === c.me ? "gold" : "red"), 350);
+    }
     app.querySelectorAll("[data-xy]").forEach((b) => b.onclick = () => {
       if (!myTurn) return;
+      unlock();
       const [x, y] = b.dataset.xy.split(",").map(Number);
       local.fired = st.n;
       c.input(`s${st.n}`, { x, y, at: Math.round(c.now()) });
@@ -219,14 +232,43 @@ export default {
 
 const shipAt = (ships, x, y) => ships.some((s) => s.some(([sx, sy]) => sx === x && sy === y));
 
-function gridHtml(c, cls, clickable, shots, mine) {
-  let html = `<div class="bs ${mine ? "mine" : ""}">`;
+function gridHtml(c, cls, clickable, shots, mine, opts = {}) {
+  let html = `<div class="bs ${mine ? "mine" : ""} ${clickable ? "aim" : ""}">`;
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
     const k = cls(x, y);
     const tried = shots && shots.some((s) => s.x === x && s.y === y);
-    html += `<button class="bscell ${k}" ${clickable && !tried ? `data-xy="${x},${y}"` : "disabled"}>${k.includes("hit") ? "🔥" : k.includes("miss") ? "•" : ""}</button>`;
+    const fresh = opts.fresh && opts.fresh.x === x && opts.fresh.y === y ? " fresh" : "";
+    html += `<button class="bscell ${k.replace("ship", "")}${fresh}" ${clickable && !tried ? `data-xy="${x},${y}"` : "disabled"}>${k.includes("hit") ? `<i class="fx-hit"></i>` : k.includes("miss") ? `<i class="fx-miss"></i>` : ""}</button>`;
   }
+  // gemi gövdeleri (hücrelerin üstünde değil altında, hücre arka planı saydam)
+  for (const ship of opts.ships || []) html += hullHtml(ship, opts.sunk?.has(shipKey(ship)) ? "sunk" : opts.hullCls || "");
   return html + "</div>";
+}
+
+const shipKey = (ship) => ship.map(([x, y]) => `${x},${y}`).join("|");
+function hullHtml(ship, cls) {
+  const xs = ship.map((p) => p[0]), ys = ship.map((p) => p[1]);
+  const x0 = Math.min(...xs), y0 = Math.min(...ys), w = Math.max(...xs) - x0 + 1, h = Math.max(...ys) - y0 + 1;
+  return `<span class="hull ${w >= h ? "hz" : "vt"} ${cls}" style="left:${(x0 / N) * 100}%;top:${(y0 / N) * 100}%;width:${(w / N) * 100}%;height:${(h / N) * 100}%"><i></i></span>`;
+}
+
+// Atışlardan batırılmış gemileri çıkar (batıran atışı içeren, o uzunlukta ardışık isabetler)
+function sunkShips(shots) {
+  const hit = new Set(shots.filter((s) => s.hit).map((s) => `${s.x},${s.y}`));
+  const out = [];
+  for (const s of shots.filter((q) => q.sunk)) {
+    const L = s.sunk;
+    let found = null;
+    for (const [dx, dy] of [[1, 0], [0, 1]]) {
+      for (let off = 0; off < L && !found; off++) {
+        const cells = Array.from({ length: L }, (_, i) => [s.x + (i - off) * dx, s.y + (i - off) * dy]);
+        if (cells.every(([x, y]) => hit.has(`${x},${y}`))) found = cells;
+      }
+      if (found) break;
+    }
+    if (found) out.push(found);
+  }
+  return out;
 }
 
 function bar(c, id, endAt, total) {
@@ -266,7 +308,7 @@ function renderEnd(c, st, fleet, name, opp) {
       <h2>${winner === c.me ? "Kazandın! 🏆" : winner ? `${name(winner)} kazandı` : "Oyun bitti"}</h2>
       ${g.forfeit ? `<p class="muted">${name(g.forfeit)} oyundan düştü.</p>` : ""}
       <h3 style="margin-top:.8rem">${name(opp)} filosu</h3>
-      ${oppShips ? gridHtml(c, (x, y) => { const s = myShots.find((q) => q.x === x && q.y === y); return (shipAt(oppShips, x, y) ? "ship " : "") + (s ? (s.hit ? "hit" : "miss") : ""); }, false) : `<p class="muted small">Filo açılıyor…</p>`}
+      ${oppShips ? gridHtml(c, (x, y) => { const s = myShots.find((q) => q.x === x && q.y === y); return s ? (s.hit ? "hit" : "miss") : ""; }, false, null, false, { ships: oppShips }) : `<p class="muted small">Filo açılıyor…</p>`}
       <p class="small" style="margin-top:.6rem">${local.verified === "ok" ? "✓ Rakibin yerleşimi doğrulandı" : local.verified === "bad" ? "⚠️ Rakibin yerleşimi doğrulanamadı (hile şüphesi)" : ""}</p>
     </section>`;
 }
