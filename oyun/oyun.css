@@ -769,3 +769,41 @@ body:has(.arena) .tabbar, body:has(.modal) .tabbar { display: none; }
 .hull > i { position: absolute; }
 .hull.hz > i { inset: 16% 3%; }
 .hull.vt > i { inset: 3% 16%; }
+
+/* ===== Yalancı Zar v2 ===== */
+.dface { display: inline-grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); width: 30px; height: 30px; padding: 4px; border-radius: 22%; vertical-align: middle;
+  background: linear-gradient(145deg, #fffdf6, #e6dbc0); box-shadow: inset 0 0 0 1px rgba(0,0,0,.14), inset 0 -2px 4px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.25); }
+.dface i { width: 66%; height: 66%; margin: auto; border-radius: 50%; }
+.dface i.on { background: radial-gradient(circle at 35% 35%, #6a3a22, #2a160c); }
+.dface.big { width: 48px; height: 48px; padding: 6px; }
+.dface.mid { width: 40px; height: 40px; padding: 5px; }
+.dface.sm { width: 24px; height: 24px; padding: 3px; }
+.dface.hl { background: linear-gradient(145deg, #fff3c8, #e8b04a); box-shadow: 0 0 0 2.5px #e8b04a, 0 0 12px rgba(232,176,74,.7); }
+.tray { display: flex; justify-content: center; gap: 8px; padding: 12px 10px; margin: .4rem auto; max-width: 300px; border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 30%, #6b4a2a, #3a2614); box-shadow: inset 0 3px 10px rgba(0,0,0,.5); }
+.tray.rolling .dface { animation: zRoll .7s calc(var(--i) * 60ms) cubic-bezier(.2,.8,.3,1.2) both; }
+@keyframes zRoll { 0% { transform: translateY(-40px) rotate(-200deg) scale(.6); opacity: 0; } 60% { transform: translateY(4px) rotate(15deg) scale(1.05); opacity: 1; } 100% { transform: none; } }
+.cups { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: .8rem; }
+.cupbox { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 76px; padding: 6px 8px; border-radius: 12px; background: var(--cream); transition: box-shadow .2s; }
+.cupbox.on { box-shadow: 0 0 0 2px var(--terracotta); }
+.cupbox.me { background: #e9efd9; }
+.cupbox.out { opacity: .45; }
+.cupbox b { font-size: .8rem; font-weight: 600; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cupbox small { color: var(--terracotta); letter-spacing: 2px; font-size: .7rem; }
+.cup { width: 34px; height: 30px; border-radius: 6px 6px 14px 14px / 6px 6px 10px 10px; background: linear-gradient(90deg, #5a3a1e, #8a5a30 45%, #5a3a1e); box-shadow: inset 0 -4px 0 rgba(0,0,0,.25), 0 3px 5px rgba(0,0,0,.3); transform: rotate(180deg); }
+.cupbox.on .cup { animation: cupShake 1.2s ease-in-out infinite; }
+@keyframes cupShake { 0%, 60%, 100% { transform: rotate(180deg); } 70% { transform: rotate(172deg); } 80% { transform: rotate(188deg); } 90% { transform: rotate(176deg); } }
+.bidchip { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 8px 16px; margin: .6rem 0; border-radius: 999px; background: var(--olive-dark); color: var(--cream); }
+.bidchip small { flex-basis: 100%; text-align: center; font-size: .72rem; opacity: .8; }
+.bidchip b { font-family: 'Jost', sans-serif; font-size: 1.6rem; font-weight: 600; }
+.faces .face { width: 50px; height: 54px; display: grid; place-items: center; padding: 0; }
+.faces .face.on { background: var(--sage); }
+.zrows { display: flex; flex-direction: column; gap: 6px; margin-top: .8rem; }
+.zrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 10px; background: var(--cream); }
+.zrow.me { background: #e9efd9; }
+.zrow .name { font-weight: 500; font-size: .9rem; }
+.zd { display: flex; gap: 4px; }
+.dface.pop { animation: zPop .45s calc(var(--i) * 90ms) cubic-bezier(.2,.9,.3,1.4) both; }
+@keyframes zPop { from { transform: scale(0) rotate(-90deg); } to { transform: none; } }
+.faces { gap: 4px; flex-wrap: nowrap; }
+.faces .face { width: 44px; height: 48px; flex: none; }

@@ -1,3 +1,5 @@
+import { sfx, buzz, unlock } from "../sound.js";
+import { burst } from "./cards.js";
 // 🎲 Yalancı Zar — herkesin gizli zarları var. Sırayla "masada en az şu kadar X var" diye teklif artırılır
 // ya da "Yalan!" denir. Zarlar sadece sahibinin telefonunda durur; başta hash yazılır, açılışta doğrulanır.
 const DICE = 4;
@@ -6,6 +8,10 @@ const COMMIT_MS = 15000;
 const REVEAL_MS = 15000;
 const RESULT_MS = 6000;
 const FACE = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+// Gerçek zar yüzü (Tavla zarlarıyla aynı stil)
+const PIPS = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
+const dieFace = (n, cls = "", style = "") => `<span class="dface ${cls}" ${style ? `style="${style}"` : ""}>${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => `<i class="${PIPS[n].includes(i) ? "on" : ""}"></i>`).join("")}</span>`;
 
 const lsKey = (c, r) => `tp_dice_${c.code}_${c.room.runId || c.room.startedAt}_${r}`;
 
@@ -73,12 +79,19 @@ export default {
       c.input(`v${r}`, { d: mine.d, salt: mine.salt });
     }
 
-    const table = `<ul class="list mini" style="margin-top:.6rem">${g.order.map((k) => `
-      <li class="${k === c.me ? "me" : ""}"><span class="name">${name(k)}</span><span class="val">${(g.dice[k] || 0) > 0 ? "🎲".repeat(g.dice[k]) : "elendi"}</span></li>`).join("")}</ul>`;
-    const myDice = amAlive && mine ? `<div class="dice">${mine.d.map((v) => `<span>${FACE[v]}</span>`).join("")}</div>` : `<p class="muted">Elendin, izlemeye devam et 👀</p>`;
+    const bidTurn = g.phase === "bid" ? bids(c.room).turn : null;
+    const table = `<div class="cups">${g.order.map((k) => {
+      const n = g.dice[k] || 0;
+      return `<div class="cupbox ${k === c.me ? "me" : ""} ${bidTurn === k ? "on" : ""} ${n ? "" : "out"}"><span class="cup"></span>
+        <b>${k === c.me ? "Sen" : name(k)}</b><small>${n ? `${"●".repeat(n)}` : "elendi"}</small></div>`;
+    }).join("")}</div>`;
+    // yeni el: kap sallanır, zarlar yuvarlanır
+    const rollAnim = amAlive && mine && local.rollAnim !== r;
+    if (rollAnim) { local.rollAnim = r; c.timer(() => { sfx.dice(700); buzz([15, 30, 15, 30, 10]); }, 50); }
+    const myDice = amAlive && mine ? `<div class="tray ${rollAnim ? "rolling" : ""}">${mine.d.map((v, i) => dieFace(v, "big", `--i:${i}`)).join("")}</div>` : `<p class="muted">Elendin, izlemeye devam et 👀</p>`;
 
     if (g.phase === "roll") {
-      app.innerHTML = `<section class="card center"><p class="eyebrow">🎲 Yalancı Zar · El ${r + 1}</p><h2>Zarlar atılıyor…</h2>${myDice}${table}</section>`;
+      app.innerHTML = `<section class="card center"><p class="eyebrow">🎲 Yalancı Zar · El ${r + 1}</p><h2>Kaplar sallanıyor…</h2>${myDice}${table}</section>`;
       return;
     }
 
@@ -95,7 +108,7 @@ export default {
           <p class="muted small">Senin zarların (sadece sen görüyorsun):</p>
           ${myDice}
           <div class="cd"><i id="cdbar"></i></div>
-          <p class="big-result">${prev ? `${name(prev.who)}: "En az <b>${prev.q}</b> tane ${FACE[prev.f]}"` : "İlk teklif bekleniyor"}</p>
+          <div class="bidchip">${prev ? `<small>${name(prev.who)}: "en az"</small><b>${prev.q} ×</b>${dieFace(prev.f, "mid")}` : `<small>İlk teklif bekleniyor</small>`}</div>
           <p class="muted">${myTurn ? "Sıra sende!" : `${name(b.turn)} düşünüyor…`}</p>
           ${myTurn ? `
             <div class="bid">
@@ -103,7 +116,7 @@ export default {
                 <button class="btn" id="qm">−</button><span class="bidq" id="qv">${local.q}</span><button class="btn" id="qp">+</button>
                 <span class="muted">tane</span>
               </div>
-              <div class="faces">${[1, 2, 3, 4, 5, 6].map((f) => `<button class="face ${local.f === f ? "on" : ""}" data-f="${f}">${FACE[f]}</button>`).join("")}</div>
+              <div class="faces">${[1, 2, 3, 4, 5, 6].map((f) => `<button class="face ${local.f === f ? "on" : ""}" data-f="${f}">${dieFace(f)}</button>`).join("")}</div>
               <div class="row" style="margin-top:.8rem">
                 ${prev ? `<button class="btn accent grow" id="call">🤥 Yalan!</button>` : ""}
                 <button class="btn primary grow" id="bidbtn">Teklif ver</button>
@@ -125,7 +138,7 @@ export default {
           send({ q: local.q, f: local.f });
         };
         const call = document.getElementById("call");
-        if (call) call.onclick = () => send({ call: true });
+        if (call) call.onclick = () => { unlock(); buzz(30); send({ call: true }); };
       }
       barTick(c, `${r}_${b.n}`, b.lastAt + BID_MS, BID_MS);
       return;
@@ -134,13 +147,22 @@ export default {
     // açılış / sonuç
     const res = g.last;
     const reveals = c.inputs[`v${r}`] || {};
+    const call = g.call;
+    const f = res ? res.f : call?.f;
+    const fresh = res && local.resShown !== r;
+    if (fresh) {
+      local.resShown = r;
+      c.timer(() => { burst(document.querySelector(".zreveal"), res.count >= res.q ? "DOĞRUYMUŞ!" : "YALANMIŞ! 🤥", res.count >= res.q ? "green" : "red"); sfx.hit(); buzz([30, 50, 30]); }, 300);
+    }
+    if (!local.callShown?.[r] && call) { local.callShown = { ...(local.callShown || {}), [r]: true }; sfx.tick(); }
     app.innerHTML = `
-      <section class="card center">
+      <section class="card center zreveal">
         <p class="eyebrow">🎲 Yalancı Zar · El ${r + 1}</p>
-        ${res ? `<p class="big-result">"En az ${res.q} tane ${FACE[res.f]}" → masada <b>${res.count}</b> tane</p>
-          <p>${res.liar ? `${name(res.liar)} hile şüphesiyle zar kaybetti ⚠️` : `<b>${name(res.loser)}</b> bir zar kaybetti`}</p>` : `<h2>🤥 Yalan dendi! Zarlar açılıyor…</h2>`}
-        <ul class="list mini" style="margin-top:.6rem">${alive(g).map((k) => `<li class="${k === c.me ? "me" : ""}"><span class="name">${name(k)}</span>
-          <span class="val dice small">${reveals[k] ? reveals[k].d.map((v) => `<span class="${res && v === res.f ? "hl" : ""}">${FACE[v]}</span>`).join("") : "…"}</span></li>`).join("")}</ul>
+        ${call ? `<div class="bidchip"><small>${name(call.caller)} "Yalan!" dedi · ${name(call.bidder)}:</small><b>${call.q} ×</b>${dieFace(call.f, "mid")}</div>` : ""}
+        ${res ? `<p class="big-result">Masada <b>${res.count}</b> tane ${dieFace(res.f, "sm")} var</p>
+          <p>${res.liar ? `${name(res.liar)} hile şüphesiyle zar kaybetti ⚠️` : `<b>${name(res.loser)}</b> bir zar kaybetti`}</p>` : `<h2>🤥 Zarlar açılıyor…</h2>`}
+        <div class="zrows">${alive(g).map((k) => `<div class="zrow ${k === c.me ? "me" : ""}"><span class="name">${k === c.me ? "Sen" : name(k)}</span>
+          <span class="zd">${reveals[k] ? reveals[k].d.map((v, i) => dieFace(v, (f && v === f ? "hl " : "") + "pop", `--i:${i}`)).join("") : "…"}</span></div>`).join("")}</div>
       </section>`;
   },
 
