@@ -11,6 +11,7 @@ import { resolveTurn as ssResolve } from "./sessiz.js";
 import { replay as dmReplay, chooseMove as dmChoose } from "./dama.js";
 import { encMove as dmEnc } from "./dama-rules.js";
 import { WORDS as CIZ_WORDS } from "./ciz.js";
+import { alive as vkAlive } from "./vampir.js";
 
 export const isBotKey = (k) => typeof k === "string" && k.startsWith("__bot");
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -310,10 +311,33 @@ function blofBot(c, k) {
   });
 }
 
+// ---------- Vampir Köylü ----------
+function vampirBot(c, k) {
+  const { g } = c;
+  const r = g.round, al = vkAlive(g);
+  if (g.dead?.[k] || !al.includes(k)) return;
+  const role = g.roles[k];
+  const others = al.filter((x) => x !== k);
+  if (g.phase === "night") {
+    if (role === "vamp" && !had(c, `na${r}`, k)) once(c, k, `na${r}`, rnd(2000, 6000), () => {
+      const prey = al.filter((x) => c.g.roles[x] !== "vamp");
+      const mate = Object.values(c.inputs[`na${r}`] || {})[0]?.t; // diğer vampirle aynı kişiyi seç
+      if (prey.length) c.inputAs(`na${r}`, k, { t: prey.includes(mate) ? mate : pick(prey) });
+    });
+    if (role === "doc" && !had(c, `nd${r}`, k)) once(c, k, `nd${r}`, rnd(2000, 6000), () => c.inputAs(`nd${r}`, k, { t: pick(al) }));
+    if (role === "seer" && !had(c, `ns${r}`, k) && others.length) once(c, k, `ns${r}`, rnd(2000, 6000), () => c.inputAs(`ns${r}`, k, { t: pick(others) }));
+    return;
+  }
+  if (g.phase === "day" && !had(c, `dv${r}`, k)) once(c, k, `dv${r}`, rnd(5000, 20000), () => {
+    const pool = role === "vamp" ? others.filter((x) => c.g.roles[x] !== "vamp") : others;
+    c.inputAs(`dv${r}`, k, { t: Math.random() < 0.12 || !pool.length ? "skip" : pick(pool) });
+  });
+}
+
 export const BOTS = {
   refleks: refleksBot,
   yabu: quizBot, masadakim: quizBot, emojifilm: quizBot, kelime: quizBot, yuksekalcak: quizBot, duello: quizBot,
-  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot, sessiz: sessizBot, hicyapmadim: hicBot, dama: damaBot, ciz: cizBot,
+  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot, sessiz: sessizBot, hicyapmadim: hicBot, dama: damaBot, ciz: cizBot, vampir: vampirBot,
   dortlu: dortluBot, amiral: amiralBot, zar: zarBot, pisti: pistiBot, blof: blofBot
   // tavla: botlarını tavla.js kendi yönetir
 };

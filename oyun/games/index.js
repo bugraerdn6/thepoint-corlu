@@ -14,10 +14,10 @@ import sessiz from "./sessiz.js";
 import hicyapmadim from "./hicyapmadim.js";
 import dama from "./dama.js";
 import ciz from "./ciz.js";
+import vampir from "./vampir.js";
 
-export const GAMES = [refleks, duello, yaBu, masadaKim, emojiFilm, kelime, yuksekAlcak, ikidogru, yasak, dortlu, amiral, zar, pisti, blof, hikaye, tavla, sessiz, hicyapmadim, dama, ciz];
+export const GAMES = [refleks, duello, yaBu, masadaKim, emojiFilm, kelime, yuksekAlcak, ikidogru, yasak, dortlu, amiral, zar, pisti, blof, hikaye, tavla, sessiz, hicyapmadim, dama, ciz, vampir];
 
 // Henüz yapılmamış oyunlar (ana sayfada "yakında" olarak görünür)
 export const UPCOMING = [
-  { emoji: "🧛", name: "Vampir Köylü", desc: "Gizli roller: vampirleri bul" }
 ];

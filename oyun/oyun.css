@@ -939,3 +939,36 @@ body:has(.arena) .tabbar, body:has(.modal) .tabbar { display: none; }
 .cz-feed li:nth-child(odd) { background: rgba(51,60,34,.04); }
 .cz-feed li.ok { color: var(--go); font-weight: 600; }
 .cz-feed em { color: var(--terracotta); font-style: normal; font-weight: 600; font-size: .78rem; }
+
+/* ===== Vampir Köylü ===== */
+.vk { transition: background .6s, color .6s; }
+.vk.night { background: radial-gradient(120% 80% at 50% 0%, #3a1a2a, #160a12 70%); color: #eadfd0; }
+.vk.night h2, .vk.night .eyebrow { color: #f2d9c4; }
+.vk.night .muted { color: #bda99a; }
+.vk.night .cd { background: rgba(255,255,255,.12); }
+.vk-role { display: inline-block; margin: .2rem 0 .5rem; padding: 4px 12px; border-radius: 999px; background: rgba(193,98,47,.15); font-weight: 600; font-size: .9rem; }
+.vk.night .vk-role { background: rgba(255,255,255,.1); }
+.vk-card { margin: .8rem auto; padding: 1.2rem 1rem; max-width: 320px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: .3rem; background: linear-gradient(160deg, #4a5a3a, #262e1a); color: #f6efdc; box-shadow: 0 14px 30px -14px rgba(0,0,0,.6); animation: vkflip .7s ease both; }
+.vk-card.vamp { background: linear-gradient(160deg, #8a1f2e, #2a0a12); }
+.vk-card.doc { background: linear-gradient(160deg, #2f6a78, #12303a); }
+.vk-card.seer { background: linear-gradient(160deg, #6a4a8a, #261a3a); }
+.vk-card b { font-family: 'Cormorant Garamond', serif; font-size: 2rem; }
+.vk-card p { margin: 0; font-size: .95rem; line-height: 1.35; opacity: .92; }
+.vk-big { font-size: 4rem; line-height: 1; }
+.vk-mates { margin-top: .5rem !important; padding-top: .5rem; border-top: 1px solid rgba(255,255,255,.2); }
+@keyframes vkflip { from { transform: rotateY(90deg) scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+.vk-ask { font-weight: 600; margin: .6rem 0; }
+.vk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin: .6rem 0; }
+.vk-p { position: relative; min-height: 52px; border: 0; border-radius: 14px; padding: 8px 10px; font: inherit; font-weight: 600; background: var(--cream); color: var(--ink); cursor: pointer; }
+.vk.night .vk-p { background: rgba(255,255,255,.1); color: #f2e6d8; }
+.vk-p.skip { background: transparent; border: 1.5px dashed currentColor; opacity: .8; }
+.vk-p:active:not(:disabled) { transform: scale(.96); }
+.vk-p:disabled:not(.on) { opacity: .45; }
+.vk .vk-p.on, .vk .vk-p.on:disabled { background: var(--terracotta); color: #fff; box-shadow: 0 0 0 3px #ffd77a; opacity: 1; }
+.vk-p em { position: absolute; top: -6px; right: -6px; min-width: 22px; height: 22px; border-radius: 999px; background: #8a1f2e; color: #fff; font-style: normal; font-size: .8rem; display: grid; place-items: center; }
+.vk-news { font-size: 1.1rem; line-height: 1.4; margin: .8rem 0; }
+.vk-secret { margin: .6rem auto; padding: .6rem .9rem; border-radius: 14px; background: rgba(106,74,138,.18); max-width: 320px; }
+.vk-alive { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 1rem; font-size: .8rem; }
+.vk-alive span { padding: 3px 9px; border-radius: 999px; background: rgba(0,0,0,.06); }
+.vk.night .vk-alive span { background: rgba(255,255,255,.08); }
+.vk-alive span.dead { opacity: .45; text-decoration: line-through; }
