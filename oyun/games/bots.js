@@ -10,6 +10,7 @@ import { resolveTurn } from "./yasak.js";
 import { resolveTurn as ssResolve } from "./sessiz.js";
 import { replay as dmReplay, chooseMove as dmChoose } from "./dama.js";
 import { encMove as dmEnc } from "./dama-rules.js";
+import { WORDS as CIZ_WORDS } from "./ciz.js";
 
 export const isBotKey = (k) => typeof k === "string" && k.startsWith("__bot");
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -130,6 +131,30 @@ function damaBot(c, k) {
   const key = `m${st.n}`;
   if (had(c, key, k)) return;
   once(c, k, key, rnd(900, 1800), () => { const m = dmChoose(st.board, st.side, st.legal); if (m) c.inputAs(key, k, { path: dmEnc(m), at: at(c) }); });
+}
+
+// ---------- Çiz-Tahmin ----------
+function cizBot(c, k) {
+  const { g } = c;
+  const t = g.turn, drawer = g.order[t];
+  if (g.phase === "pick" && drawer === k && !had(c, `w${t}`, k)) { once(c, k, `w${t}`, rnd(1500, 3500), () => c.inputAs(`w${t}`, k, { i: Math.floor(Math.random() * 3) })); return; }
+  if (g.phase !== "draw") return;
+  if (drawer === k) {
+    // birkaç karalama çizgisi
+    for (let n = 1; n <= 8; n++) once(c, k, `s${t}_${n}`, n * rnd(1200, 2200), () => {
+      let x = rnd(150, 850), y = rnd(120, 630);
+      const pts = [[x, y]];
+      for (let i = 0; i < 12; i++) { x = Math.max(20, Math.min(980, x + rnd(-80, 80))); y = Math.max(20, Math.min(730, y + rnd(-60, 60))); pts.push([Math.round(x), Math.round(y)]); }
+      c.inputAs(`s${t}_${n}`, k, { p: pts.map((p) => p.join(",")).join(";"), c: Math.floor(Math.random() * 4), w: 7 });
+    });
+    return;
+  }
+  // tahmin eden bot: birkaç yanlış tahmin, bazen doğrusu
+  for (let n = 1; n <= 4; n++) once(c, k, `g${t}_${n}`, rnd(4000, 16000) + n * 6000, () => {
+    if (c.g.phase !== "draw" || c.g.turn !== t) return;
+    const right = n === 4 && Math.random() < 0.6;
+    c.inputAs(`g${t}_${n}`, k, { t: right ? c.g.word : pick(CIZ_WORDS), at: at(c) });
+  });
 }
 
 // ---------- Dörtlü Bağla ----------
@@ -288,7 +313,7 @@ function blofBot(c, k) {
 export const BOTS = {
   refleks: refleksBot,
   yabu: quizBot, masadakim: quizBot, emojifilm: quizBot, kelime: quizBot, yuksekalcak: quizBot, duello: quizBot,
-  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot, sessiz: sessizBot, hicyapmadim: hicBot, dama: damaBot,
+  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot, sessiz: sessizBot, hicyapmadim: hicBot, dama: damaBot, ciz: cizBot,
   dortlu: dortluBot, amiral: amiralBot, zar: zarBot, pisti: pistiBot, blof: blofBot
   // tavla: botlarını tavla.js kendi yönetir
 };

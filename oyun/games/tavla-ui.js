@@ -502,7 +502,7 @@ function wireBoard(c, boardEl, o) {
     }
     if (!o.sources.has(pt)) { if (local.sel != null) { local.sel = null; o.rerender(); } return; }
     drag = { from: pt, x0: ev.clientX, y0: ev.clientY, moved: false, ghost: null };
-    svg.setPointerCapture?.(ev.pointerId);
+    try { svg.setPointerCapture?.(ev.pointerId); } catch { /* bazı tarayıcılar reddedebilir */ }
   });
   svg.addEventListener("pointermove", (ev) => {
     if (!drag) return;

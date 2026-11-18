@@ -13,11 +13,11 @@ import tavla from "./tavla.js";
 import sessiz from "./sessiz.js";
 import hicyapmadim from "./hicyapmadim.js";
 import dama from "./dama.js";
+import ciz from "./ciz.js";
 
-export const GAMES = [refleks, duello, yaBu, masadaKim, emojiFilm, kelime, yuksekAlcak, ikidogru, yasak, dortlu, amiral, zar, pisti, blof, hikaye, tavla, sessiz, hicyapmadim, dama];
+export const GAMES = [refleks, duello, yaBu, masadaKim, emojiFilm, kelime, yuksekAlcak, ikidogru, yasak, dortlu, amiral, zar, pisti, blof, hikaye, tavla, sessiz, hicyapmadim, dama, ciz];
 
 // Henüz yapılmamış oyunlar (ana sayfada "yakında" olarak görünür)
 export const UPCOMING = [
-  { emoji: "🎨", name: "Çiz-Tahmin", desc: "Biri çizer, diğerleri tahmin eder" },
   { emoji: "🧛", name: "Vampir Köylü", desc: "Gizli roller: vampirleri bul" }
 ];
