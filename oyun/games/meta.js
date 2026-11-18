@@ -25,9 +25,10 @@ export const META = {
   tavla:       { cat: "board", people: "2 kişi",    mins: "15 dk" },
   dortlu:      { cat: "board", people: "2 kişi",    mins: "5 dk" },
   amiral:      { cat: "board", people: "2 kişi",    mins: "8 dk" },
+  dama:        { cat: "board", people: "2 kişi",    mins: "10 dk" },
   // yakında
   "Vampir Köylü": { cat: "team" },
-  "Çiz-Tahmin": { cat: "party" }, "Dama": { cat: "board" }
+  "Çiz-Tahmin": { cat: "party" }
 };
 
 const P = { olive: "#5c6a3f", oliveD: "#333c22", deep: "#2a3019", terra: "#c1622f", terraL: "#d97a44", cream: "#f2ead4", paper: "#faf6ea", sage: "#b7c68f", gold: "#e8b04a" };
@@ -58,6 +59,8 @@ const SPECIAL = {
   blof: () => `${[-10, 4].map((r, i) => `<g transform="rotate(${r} 80 100)"><rect x="56" y="24" width="36" height="52" rx="4" fill="url(#bk)" stroke="#0004"/></g>`).join("")}<text x="104" y="52" font-size="26">🤥</text>`,
   dortlu: () => `<rect x="40" y="16" width="80" height="78" rx="8" fill="#2f5aa0"/>${[0, 1, 2, 3].map((r) => [0, 1, 2, 3].map((cl) => `<circle cx="${52 + cl * 18.5}" cy="${28 + r * 18}" r="7" fill="${(r === 3 && cl < 3) || (r === 2 && cl === 1) ? "#d23b2a" : (r === 3 && cl === 3) || (r === 2 && cl === 2) ? "#f2c230" : P.paper}"/>`).join("")).join("")}`,
   amiral: () => `<path d="M0 78 Q20 72 40 78 T80 78 T120 78 T160 78 V110 H0Z" fill="#2f5aa0" opacity=".85"/><path d="M38 70 L122 70 L110 82 L50 82Z" fill="#6b7a86"/><rect x="64" y="52" width="26" height="18" rx="2" fill="#8a96a0"/><rect x="74" y="38" width="5" height="14" fill="#6b7a86"/><circle cx="118" cy="40" r="10" fill="${P.gold}" opacity=".9"/><text x="112" y="45" font-size="12">💥</text>`,
+  dama: () => `<rect x="40" y="14" width="80" height="80" rx="4" fill="#efe5c8"/>${[0,1,2,3,4,5,6,7].map((r) => [0,1,2,3,4,5,6,7].map((cl) => (r + cl) % 2 ? `<rect x="${40 + cl * 10}" y="${14 + r * 10}" width="10" height="10" fill="#d8c79c"/>` : "").join("")).join("")}
+    ${[[1,2],[1,4],[2,3],[2,5]].map(([r, cl]) => `<circle cx="${45 + cl * 10}" cy="${19 + r * 10}" r="4" fill="#2b2718"/>`).join("")}${[[5,2],[5,3],[6,4],[4,5]].map(([r, cl]) => `<circle cx="${45 + cl * 10}" cy="${19 + r * 10}" r="4" fill="#fffdf6" stroke="#b9a87d"/>`).join("")}`,
   zar: () => [[48, 30, -12, 5], [84, 46, 10, 3], [62, 64, 4, 6]].map(([x, y, r, n]) => `<g transform="rotate(${r} ${x + 13} ${y + 13})"><rect x="${x}" y="${y}" width="26" height="26" rx="5" fill="${P.paper}" stroke="#0003"/>${({ 3: [[7, 7], [13, 13], [19, 19]], 5: [[7, 7], [19, 7], [13, 13], [7, 19], [19, 19]], 6: [[7, 7], [19, 7], [7, 13], [19, 13], [7, 19], [19, 19]] })[n].map(([a, b]) => `<circle cx="${x + a}" cy="${y + b}" r="2.2" fill="#3a1a0a"/>`).join("")}</g>`).join("")
 };
 
@@ -66,7 +69,7 @@ const TONES = {
   refleks: ["#d97a44", "#9c4220"], yabu: ["#c99a3a", "#7d5a18"], masadakim: ["#7b8a52", "#3f4a26"], emojifilm: ["#8a4a5a", "#4a2230"],
   kelime: ["#4f7a72", "#24443e"], yuksekalcak: ["#b5653a", "#6a3015"], ikidogru: ["#9a7a3a", "#56401a"], hikaye: ["#6b5a8a", "#382c50"],
   duello: ["#5c6a3f", "#2a3019"], yasak: ["#a8452a", "#5a1f10"], pisti: ["#3d5a4a", "#1f3329"], blof: ["#2f4a5a", "#162630"], zar: ["#6a5a3a", "#352a14"],
-  tavla: ["#6b4a2a", "#3a2614"], sessiz: ["#5a3a6a", "#2c1a38"], hicyapmadim: ["#c1622f", "#6b2a12"], dortlu: ["#3a4f78", "#1c2840"], amiral: ["#3b6a86", "#1a3446"]
+  tavla: ["#6b4a2a", "#3a2614"], sessiz: ["#5a3a6a", "#2c1a38"], hicyapmadim: ["#c1622f", "#6b2a12"], dama: ["#4a3a2a", "#221a12"], dortlu: ["#3a4f78", "#1c2840"], amiral: ["#3b6a86", "#1a3446"]
 };
 
 export function coverSvg(rawId, emoji, cat) {

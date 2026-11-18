@@ -8,6 +8,8 @@ import { replay as bsReplay, randomFleet } from "./amiral.js";
 import { bids as zarBids, alive as zarAlive } from "./zar.js";
 import { resolveTurn } from "./yasak.js";
 import { resolveTurn as ssResolve } from "./sessiz.js";
+import { replay as dmReplay, chooseMove as dmChoose } from "./dama.js";
+import { encMove as dmEnc } from "./dama-rules.js";
 
 export const isBotKey = (k) => typeof k === "string" && k.startsWith("__bot");
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -119,6 +121,15 @@ function hicBot(c, k) {
   const { g } = c;
   if (g.phase !== "q" || had(c, `h${g.round}`, k)) return;
   once(c, k, `h${g.round}`, rnd(1500, 6000), () => c.inputAs(`h${g.round}`, k, { y: Math.random() < 0.4 }));
+}
+
+// ---------- Dama ----------
+function damaBot(c, k) {
+  const st = dmReplay(c.room);
+  if (st.winner || st.draw || st.turn !== k) return;
+  const key = `m${st.n}`;
+  if (had(c, key, k)) return;
+  once(c, k, key, rnd(900, 1800), () => { const m = dmChoose(st.board, st.side, st.legal); if (m) c.inputAs(key, k, { path: dmEnc(m), at: at(c) }); });
 }
 
 // ---------- Dörtlü Bağla ----------
@@ -277,7 +288,7 @@ function blofBot(c, k) {
 export const BOTS = {
   refleks: refleksBot,
   yabu: quizBot, masadakim: quizBot, emojifilm: quizBot, kelime: quizBot, yuksekalcak: quizBot, duello: quizBot,
-  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot, sessiz: sessizBot, hicyapmadim: hicBot,
+  ikidogru: ikiDogruBot, hikaye: hikayeBot, yasak: yasakBot, sessiz: sessizBot, hicyapmadim: hicBot, dama: damaBot,
   dortlu: dortluBot, amiral: amiralBot, zar: zarBot, pisti: pistiBot, blof: blofBot
   // tavla: botlarını tavla.js kendi yönetir
 };
