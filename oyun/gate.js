@@ -2,6 +2,7 @@
 import { db, ref, get, set, update, serverNow } from "./firebase.js";
 import { VENUE } from "./config.js";
 import { state, app, esc, toast, tryLink } from "./app.js";
+import { openAdmin } from "./admin.js";
 
 const DAY_MS = 86400000;
 const TZ_MS = 3 * 3600000;     // İstanbul UTC+3
@@ -163,6 +164,7 @@ export async function renderAdminCard(el) {
   const ahead = Object.keys(all).filter((d) => d >= today).length;
   el.innerHTML = `
     <p class="eyebrow">🔑 Yönetici</p>
+    <button class="btn accent block" id="openAdm" style="margin:.4rem 0 1rem">🛠 Yönetim paneli</button>
     <h2>Bu gecenin kodu</h2>
     <div class="code-big" style="margin:.6rem 0">${tonight ? esc(tonight.code) : "—"}</div>
     <p class="muted small">${tonight ? `${today} 06:00 → ertesi gün 06:00 geçerli.` : "Bu gece için kod yok! Aşağıdan üret."} Hazır kod: ${ahead} gün.</p>
@@ -170,6 +172,7 @@ export async function renderAdminCard(el) {
     <details style="margin-top:.8rem"><summary class="muted small">Sonraki günlerin kodları</summary>
       <ul class="list">${Object.keys(all).filter((d) => d >= today).sort().slice(0, 14).map((d) => `<li><span class="name">${d}</span><span class="val">${esc(all[d].code)}</span></li>`).join("")}</ul>
     </details>`;
+  document.getElementById("openAdm").onclick = () => openAdmin("musteri", null);
   document.getElementById("gen").onclick = async (e) => {
     e.target.disabled = true;
     try {

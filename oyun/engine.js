@@ -11,6 +11,7 @@ import { state, app, esc, toast, clearSubs, renderHome, addPoints, displayName }
 import { GAMES } from "./games/index.js";
 import { BOTS, isBotKey } from "./games/bots.js";
 import { access } from "./gate.js";
+import { settings } from "./admin.js";
 import { sfx, buzz, unlock } from "./sound.js";
 
 const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -28,6 +29,8 @@ export const gameOf = (id) => GAMES.find((g) => g.id === id);
 // ---------- oda açma ----------
 export function chooseVisibility(gameId) {
   const game = gameOf(gameId);
+  // masalar arası oyun kapalıysa soru sorma: oda sadece masaya
+  if (!settings.crossTable) { createRoom(gameId, "private").catch((err) => { console.error(err); toast("Oda açılamadı, tekrar dene."); }); return; }
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -265,7 +268,7 @@ function renderLobby(room) {
       <p style="margin-top:.6rem"><span class="level-chip">${room.visibility === "public" ? "🌐 Diğer masalar katılabilir" : "🔒 Sadece kodu bilenler"}</span></p>
       <div class="row" style="justify-content:center;margin-top:.8rem;flex-wrap:wrap">
         <button class="btn" id="share">🔗 Davet et</button>
-        ${R.isHost ? `<button class="btn" id="vis">${room.visibility === "public" ? "🔒 Gizle" : "🌐 Herkese aç"}</button>` : ""}
+        ${R.isHost && (settings.crossTable || room.visibility === "public") ? `<button class="btn" id="vis">${room.visibility === "public" ? "🔒 Gizle" : "🌐 Herkese aç"}</button>` : ""}
       </div>
     </section>
     <section class="card">
@@ -476,6 +479,7 @@ async function renderDone(room) {
 async function renderInviteBox(room) {
   const box = document.getElementById("inviteBox");
   if (!box) return;
+  if (!settings.crossTable) { box.innerHTML = ""; return; }
   const snap = await get(ref(db, "online")).catch(() => null);
   const box2 = document.getElementById("inviteBox");
   if (!box2 || !R) return;

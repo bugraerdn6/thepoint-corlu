@@ -8,7 +8,8 @@
           ".read": "auth != null",
           ".write": "(auth != null && !root.child('pins').child($h).exists()) && root.child('access').child(auth.uid).child('until').val() > now",
           ".validate": "newData.val() === true && $hash.length === 64"
-        }
+        },
+        ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true) && !newData.exists()"
       }
     },
     "links": {
@@ -17,7 +18,8 @@
           ".read": "auth != null && auth.uid === $uid",
           ".write": "auth != null && auth.uid === $uid",
           ".validate": "newData.isString() && newData.parent().parent().parent().child('pins').child($h).child(newData.val()).exists()"
-        }
+        },
+        ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true) && !newData.exists()"
       }
     },
     "players": {
@@ -26,7 +28,7 @@
         "weekPts"
       ],
       "$h": {
-        ".write": "(auth != null && newData.parent().parent().child('links').child($h).child(auth.uid).exists()) && root.child('access').child(auth.uid).child('until').val() > now",
+        ".write": "(((auth != null && newData.parent().parent().child('links').child($h).child(auth.uid).exists()) && root.child('access').child(auth.uid).child('until').val() > now) && !root.child('bans').child($h).exists()) || ((root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true) && !newData.exists())",
         ".validate": "newData.hasChildren(['handle', 'visits', 'points', 'createdAt'])",
         "handle": {
           ".validate": "newData.isString() && newData.val().length <= 30 && (!data.exists() || newData.val() === data.val())"
@@ -75,17 +77,17 @@
         "createdAt"
       ],
       "$code": {
-        ".write": "(auth != null && (!data.exists() || data.child('hostUid').val() === auth.uid)) && root.child('access').child(auth.uid).child('until').val() > now",
-        ".validate": "$code.length === 4 && newData.hasChildren(['game', 'hostHk', 'hostUid', 'state', 'visibility', 'createdAt']) && (data.exists() ? (newData.child('hostUid').val() === data.child('hostUid').val() && newData.child('hostHk').val() === data.child('hostHk').val()) : (newData.child('hostUid').val() === auth.uid && root.child('links').child(newData.child('hostHk').val()).child(auth.uid).exists()))",
+        ".write": "((auth != null && (!data.exists() || data.child('hostUid').val() === auth.uid)) && root.child('access').child(auth.uid).child('until').val() > now) || (root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true)",
+        ".validate": "$code.length === 4 && newData.hasChildren(['game', 'hostHk', 'hostUid', 'state', 'visibility', 'createdAt']) && (data.exists() ? (newData.child('hostUid').val() === data.child('hostUid').val() && newData.child('hostHk').val() === data.child('hostHk').val()) : (!root.child('bans').child(newData.child('hostHk').val()).exists() && newData.child('hostUid').val() === auth.uid && root.child('links').child(newData.child('hostHk').val()).child(auth.uid).exists()))",
         "visibility": {
-          ".validate": "newData.val() === 'public' || newData.val() === 'private'"
+          ".validate": "newData.val() === 'private' || (newData.val() === 'public' && root.child('settings').child('crossTable').val() !== false)"
         },
         "state": {
           ".validate": "newData.val() === 'lobby' || newData.val() === 'play' || newData.val() === 'done' || newData.val() === 'closed'"
         },
         "players": {
           "$h": {
-            ".write": "(auth != null && root.child('links').child($h).child(auth.uid).exists() && (!newData.exists() || data.exists() || (!data.parent().parent().child('kicked').child($h).exists() && !root.child('blocks').child(data.parent().parent().child('hostHk').val()).child($h).exists() && (data.parent().parent().child('state').val() === 'lobby' || data.parent().parent().child('members').child($h).exists())))) && root.child('access').child(auth.uid).child('until').val() > now",
+            ".write": "(auth != null && root.child('links').child($h).child(auth.uid).exists() && !root.child('bans').child($h).exists() && (!newData.exists() || data.exists() || (!data.parent().parent().child('kicked').child($h).exists() && !root.child('blocks').child(data.parent().parent().child('hostHk').val()).child($h).exists() && (data.parent().parent().child('state').val() === 'lobby' || data.parent().parent().child('members').child($h).exists())))) && root.child('access').child(auth.uid).child('until').val() > now",
             ".validate": "newData.hasChildren(['name']) && newData.child('name').isString() && newData.child('name').val().length <= 31",
             "team": {
               ".validate": "newData.val() === 'A' || newData.val() === 'B'"
@@ -95,7 +97,7 @@
         "in": {
           "$k": {
             "$h": {
-              ".write": "(auth != null && root.child('links').child($h).child(auth.uid).exists() && !data.exists() && data.parent().parent().parent().child('players').child($h).exists() && data.parent().parent().parent().child('state').val() === 'play') && root.child('access').child(auth.uid).child('until').val() > now"
+              ".write": "(auth != null && root.child('links').child($h).child(auth.uid).exists() && !root.child('bans').child($h).exists() && !data.exists() && data.parent().parent().parent().child('players').child($h).exists() && data.parent().parent().parent().child('state').val() === 'play') && root.child('access').child(auth.uid).child('until').val() > now"
             }
           }
         },
@@ -119,14 +121,19 @@
         "$other": {
           ".write": "(auth != null && root.child('links').child($h).child(auth.uid).exists()) && root.child('access').child(auth.uid).child('until').val() > now",
           ".validate": "newData.val() === true"
-        }
+        },
+        ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true) && !newData.exists()"
       }
     },
     "reports": {
       "$id": {
-        ".write": "auth != null && !data.exists() && newData.child('by').isString() && root.child('links').child(newData.child('by').val()).child(auth.uid).exists()",
+        ".write": "(auth != null && !data.exists() && newData.child('by').isString() && root.child('links').child(newData.child('by').val()).child(auth.uid).exists()) || ((root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true) && !newData.exists())",
         ".validate": "newData.hasChildren(['by', 'target', 'at']) && newData.child('target').isString() && newData.child('at').val() === now && (!newData.child('reason').exists() || (newData.child('reason').isString() && newData.child('reason').val().length <= 200))"
-      }
+      },
+      ".read": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true)",
+      ".indexOn": [
+        "at"
+      ]
     },
     "access": {
       "$uid": {
@@ -138,21 +145,23 @@
     "admins": {
       "$h": {
         ".read": "auth != null",
-        ".write": false
-      }
+        ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true)",
+        ".validate": "newData.val() === true && root.child('players').child($h).exists()"
+      },
+      ".read": "auth != null"
     },
     "gate": {
       "$day": {
         "$code": {
           ".read": "auth != null",
-          ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now)",
+          ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true)",
           ".validate": "newData.hasChildren(['from', 'to']) && newData.child('from').isNumber() && newData.child('to').isNumber() && $code.length === 4"
         }
       }
     },
     "gateAdmin": {
-      ".read": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now)",
-      ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now)"
+      ".read": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true)",
+      ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true)"
     },
     "online": {
       ".read": "auth != null && root.child('access').child(auth.uid).child('until').val() > now",
@@ -165,9 +174,26 @@
       "$t": {
         ".read": "auth != null && root.child('links').child($t).child(auth.uid).exists()",
         "$f": {
-          ".write": "auth != null && ((!newData.exists() && root.child('links').child($t).child(auth.uid).exists()) || (newData.exists() && root.child('links').child($f).child(auth.uid).exists() && root.child('access').child(auth.uid).child('until').val() > now && $f !== $t && root.child('players').child($t).child('invites').val() === true && !root.child('blocks').child($t).child($f).exists() && !root.child('blocks').child($f).child($t).exists() && (!data.exists() || data.child('at').val() < now - 600000)))",
+          ".write": "auth != null && ((!newData.exists() && root.child('links').child($t).child(auth.uid).exists()) || (newData.exists() && root.child('links').child($f).child(auth.uid).exists() && root.child('access').child(auth.uid).child('until').val() > now && $f !== $t && root.child('settings').child('crossTable').val() !== false && !root.child('bans').child($f).exists() && root.child('players').child($t).child('invites').val() === true && !root.child('blocks').child($t).child($f).exists() && !root.child('blocks').child($f).child($t).exists() && (!data.exists() || data.child('at').val() < now - 600000)))",
           ".validate": "newData.hasChildren(['room', 'game', 'name', 'at']) && newData.child('room').isString() && newData.child('room').val().length === 4 && newData.child('game').isString() && newData.child('game').val().length <= 20 && newData.child('name').isString() && newData.child('name').val().length <= 31 && newData.child('at').val() === now"
         }
+      }
+    },
+    "bans": {
+      "$h": {
+        ".read": "auth != null",
+        ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true)",
+        ".validate": "newData.hasChildren(['at','by']) && newData.child('at').val() === now && newData.child('by').isString() && (!newData.child('reason').exists() || (newData.child('reason').isString() && newData.child('reason').val().length <= 200))"
+      }
+    },
+    "settings": {
+      ".read": "auth != null",
+      ".write": "(root.child('access').child(auth.uid).child('admin').val() === true && root.child('access').child(auth.uid).child('until').val() > now && root.child('admins').child(root.child('access').child(auth.uid).child('hk').val()).val() === true)",
+      "crossTable": {
+        ".validate": "newData.isBoolean()"
+      },
+      "$other": {
+        ".validate": false
       }
     }
   }

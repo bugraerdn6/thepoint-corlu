@@ -8,6 +8,7 @@ import { access, loadAccess, renderGate, verifyLocation, startLocationWatch, ren
 import { GAMES, UPCOMING } from "./games/index.js";
 import { CATS, META, coverSvg } from "./games/meta.js";
 import { checkNick, randomNick } from "./filter.js";
+import { settings, watchSettings, onSettings, banOf } from "./admin.js";
 
 const app = document.getElementById("app");
 const LS_HANDLE = "tp_handle";
@@ -159,7 +160,20 @@ async function login(handle, pin, consent, nickRaw) {
   if (await linkExisting(handle, pin)) return enter(hk);
   const hash = await pinHash(handle, pin);
 
-  // 2) Yeni hesap açmayı dene (ad alınmışsa kural reddeder)
+  // 2) Hesap var ama yönetici PIN'i sıfırladıysa: yeni PIN'i bağla (PIN'i olan hesapta kural reddeder)
+  const existing = await get(ref(db, `players/${hk}`)).catch(() => null);
+  if (existing?.exists()) {
+    try {
+      await update(ref(db), { [`pins/${hk}/${hash}`]: true, [`links/${hk}/${uid}`]: hash });
+    } catch {
+      throw new Error("Kullanıcı adı veya PIN yanlış. PIN'ini unuttuysan personele söyle, sıfırlasınlar.");
+    }
+    localStorage.setItem(LS_HANDLE, hk);
+    toast("Yeni PIN'in kaydedildi, tekrar hoş geldin 🎉");
+    return enter(hk);
+  }
+
+  // 3) Yeni hesap açmayı dene (ad alınmışsa kural reddeder)
   if (!consent) throw new Error("Bu adla hesap yok ya da PIN yanlış. Yeni hesap açıyorsan onay kutusunu işaretle.");
   const nc = checkNick(nickRaw);
   if (!nc.ok) throw new Error(nc.reason);
@@ -207,11 +221,21 @@ function showKvkk() {
   document.body.appendChild(m);
 }
 
+function renderBanned(ban) {
+  clearSubs();
+  app.innerHTML = `<div class="card center"><p class="eyebrow">Hesap</p><h2>Hesabın oyunlara kapatıldı ⛔</h2>
+    <p class="muted" style="margin-top:.5rem">Bir yanlışlık olduğunu düşünüyorsan personele söyleyebilirsin.</p>
+    <button class="btn block" id="lo" style="margin-top:1rem">Çıkış yap</button></div>`;
+  document.getElementById("lo").onclick = logout;
+}
+
 // ---------- ana sayfa ----------
 async function enter(hk) {
   state.hk = hk;
   const linked = await get(ref(db, `links/${hk}/${state.uid}`)).catch(() => null);
   if (!linked || !linked.exists()) { localStorage.removeItem(LS_HANDLE); return renderLogin(); }
+  const ban = await banOf(hk);
+  if (ban) return renderBanned(ban);
   watchInvites();
   renderHome();
 }
@@ -291,9 +315,17 @@ export function renderHome() {
 
   // şu an oynanan (herkese açık) odalar
   const since = serverNow() - ROOM_TTL_MIN * 60000;
-  state.unsubs.push(onValue(query(ref(db, "rooms"), orderByChild("createdAt"), startAt(since)), (s) => {
+  let lastRooms = null;
+  const crossOff = () => {
+    const el = document.getElementById("rooms");
+    if (el) el.innerHTML = `<div class="room-empty">🔒 Bu gece herkes kendi masasıyla oynuyor.<br><small>Masandakilerle oda kodunu paylaşarak oynayabilirsin.</small></div>`;
+  };
+  state.unsubs.push(onSettings(() => { if (!settings.crossTable) crossOff(); else if (lastRooms) drawRooms(lastRooms); }));
+  state.unsubs.push(onValue(query(ref(db, "rooms"), orderByChild("createdAt"), startAt(since)), (s) => { lastRooms = s; drawRooms(s); }));
+  function drawRooms(s) {
     const el = document.getElementById("rooms");
     if (!el) return;
+    if (!settings.crossTable) return crossOff();
     const rows = [];
     s.forEach((c) => {
       const r = c.val();
@@ -310,7 +342,7 @@ export function renderHome() {
         }).join("")
       : `<div class="room-empty">Şu an herkese açık oda yok.<br><small>Bir oyun aç, "Diğer masalar da katılsın"ı seç.</small></div>`;
     el.querySelectorAll("[data-code]").forEach((b) => b.onclick = () => joinRoom(b.dataset.code));
-  }));
+  }
 
   // haftalık sıralama
   state.unsubs.push(onValue(query(ref(db, "players"), orderByChild("weekPts"), limitToLast(20)), (s) => {
@@ -541,6 +573,7 @@ async function lockOut() {
 
 async function afterGate() {
   startLocationWatch(lockOut);
+  watchSettings();
   const params = new URLSearchParams(location.search);
   const hk = localStorage.getItem(LS_HANDLE);
   if (hk) await enter(hk); else renderLogin();

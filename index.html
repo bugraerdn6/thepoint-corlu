@@ -24,6 +24,13 @@
       <a href="https://www.instagram.com/thepoint.corlu" target="_blank" rel="noopener" class="pill">Instagram</a>
       <a href="https://www.google.com/maps?cid=3169288846046193105" target="_blank" rel="noopener" class="pill pill-gold">Google'da Yorum Yap</a>
     </div>
+    <!-- Oyun butonu: deneme açılışına kadar gizli. Açmak için "hidden" kelimesini sil. Önizleme: sayfa adresine ?oyna=1 ekle -->
+    <a href="oyun/" class="play-cta" id="playCta" hidden>
+      <span class="play-cta-ico">🎲</span>
+      <span class="play-cta-txt"><b>Masalar arası oyun</b><small>Tavla, Pişti, Vampir Köylü ve 18 oyun daha</small></span>
+      <span class="play-cta-go">Oyna →</span>
+    </a>
+    <script>if (/[?&]oyna=1/.test(location.search)) document.getElementById('playCta').hidden = false;</script>
   </div>
 </header>
 
