@@ -95,7 +95,7 @@ function renderLogin(prefill = "") {
         <p class="muted small" style="margin-top:.3rem">İlk girişte PIN'i sen belirlersin. Sonraki girişlerde aynı PIN'i kullan.</p>
       </div>
       <label class="check"><input type="checkbox" id="c">
-        <span>Yeni hesap açıyorum. <button type="button" class="linkbtn" id="kvkk">Aydınlatma metnini</button> okudum, takma adımın sıralamalarda görünmesini kabul ediyorum.</span>
+        <span>Yeni hesap açıyorum. <button type="button" class="linkbtn" id="kvkk">Aydınlatma metnini</button> okudum.</span>
       </label>
       <div id="nickBox" hidden>
         <label for="n">Takma adın <span class="muted small">(diğer müşteriler bunu görür)</span></label>
@@ -205,16 +205,30 @@ function showKvkk() {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
-    <div class="card">
-      <p class="eyebrow">Taslak</p>
+    <div class="card kvkk">
+      <p class="eyebrow">KVKK</p>
       <h2>Aydınlatma Metni</h2>
-      <p><b>Veri sorumlusu:</b> The Point Cocktail Bar, Esentepe Mah. Adnan Doğu Cad. No:16, Çorlu/Tekirdağ.</p>
-      <p><b>Toplanan veriler:</b> Instagram kullanıcı adın, takma adın, şifrelenmiş PIN'in, ziyaret sayın ve tarihleri, oyun puanların. Check-in sırasında konumun yalnızca telefonunda mekana yakınlık kontrolü için kullanılır, kaydedilmez.</p>
-      <p><b>Amaç:</b> Müdavim seviyesi, ödüller, oyunlar ve sıralama tablosu.</p>
-      <p><b>Görünürlük:</b> Diğer oyuncular sadece takma adını, seviyeni ve puanını görür. Instagram kullanıcı adın, sen ayarlardan açmadıkça kimseye gösterilmez. Masa numaran hiçbir zaman gösterilmez.</p>
-      <p><b>Saklama:</b> Veriler Google Firebase (AB – Belçika) sunucularında tutulur. Hesabını sildirmek için Instagram'dan @thepoint.corlu'ya yazabilirsin.</p>
-      <p><b>Hakların:</b> KVKK m.11 kapsamındaki haklarını (bilgi talep etme, düzeltme, silme vb.) aynı kanaldan kullanabilirsin.</p>
-      <p class="muted small">Bu metin taslaktır, yayına almadan önce hukuki kontrol önerilir.</p>
+      <p class="muted small">6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) m.10 uyarınca, The Point oyun ve müdavim uygulamasını kullanırken işlenen kişisel verilerin hakkında seni bilgilendiriyoruz.</p>
+      <h3>1. Veri sorumlusu</h3>
+      <p>The Point Cocktail Bar · Esentepe Mah. Adnan Doğu Cad. No:16, Çorlu/Tekirdağ.</p>
+      <h3>2. Hangi verileri işliyoruz?</h3>
+      <ul>
+        <li><b>Kimlik/iletişim:</b> Instagram kullanıcı adın ve seçtiğin takma ad.</li>
+        <li><b>Hesap güvenliği:</b> PIN'in (geri çevrilemeyecek şekilde şifrelenmiş hâliyle), tarayıcına atanan anonim oturum kimliği.</li>
+        <li><b>Kullanım:</b> ziyaret (check-in) sayın ve tarihleri, oyun puanların, katıldığın oyun odaları ve oyun içi hamle/cevapların.</li>
+        <li><b>Güvenlik kayıtları:</b> yaptığın ya da hakkında yapılan şikayetler, engellemeler.</li>
+        <li><b>Konum:</b> mekanda olup olmadığın <b>sadece telefonunda</b> kontrol edilir; konumun sunucuya gönderilmez ve kaydedilmez.</li>
+      </ul>
+      <h3>3. Neden işliyoruz? (amaç ve hukuki sebep)</h3>
+      <p>Hesabını açmak, oyunları oynatmak, müdavim seviyeni ve sıralamayı tutmak için (KVKK m.5/2-c: hizmetin sunulması); uygulamanın sadece mekanda kullanılması, kötüye kullanımın ve rahatsız edici davranışların önlenmesi için (m.5/2-f: meşru menfaat).</p>
+      <h3>4. Kimler görebilir?</h3>
+      <p>Diğer oyuncular sadece <b>takma adını, seviyeni ve puanını</b> görür. Instagram kullanıcı adın, ayarlardan sen açmadıkça kimseye gösterilmez. Masa numaran hiçbir zaman tutulmaz. Tüm bilgilerini yalnızca işletmenin yetkili personeli görebilir.</p>
+      <h3>5. Nerede saklanıyor? (aktarım)</h3>
+      <p>Veriler, hizmet sağlayıcımız Google'ın Firebase altyapısında, Avrupa Birliği'ndeki (Belçika) sunucularda saklanır. Bu, KVKK m.9 kapsamında yurt dışına aktarım sayılır ve sağlayıcının veri koruma taahhütlerine dayanılarak yapılır. Verilerin başka hiçbir kişi ya da kuruma satılmaz, reklam için kullanılmaz; yalnızca kanunen zorunlu hâllerde yetkili kamu kurumlarıyla paylaşılabilir.</p>
+      <h3>6. Ne kadar saklanıyor?</h3>
+      <p>Hesabın silinene kadar. Silinmesini istediğinde en geç 30 gün içinde puanların, ziyaretlerin ve bütün hesap bilgilerin kalıcı olarak silinir. Biten oyun odaları düzenli olarak temizlenir.</p>
+      <h3>7. Hakların</h3>
+      <p>KVKK m.11 uyarınca verilerinin işlenip işlenmediğini öğrenme, bilgi isteme, düzeltilmesini ya da silinmesini isteme, itiraz etme ve zararın giderilmesini talep etme hakların vardır. Başvurunu mekanda personele, işletme adresine yazılı olarak ya da Instagram'dan <b>@thepoint.corlu</b>'ya mesajla yapabilirsin. Başvurular en geç 30 gün içinde ücretsiz olarak sonuçlandırılır.</p>
       <button class="btn primary block" style="margin-top:1rem">Kapat</button>
     </div>`;
   m.onclick = (e) => { if (e.target === m || e.target.tagName === "BUTTON") m.remove(); };

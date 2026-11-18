@@ -27,7 +27,7 @@ export const MASADA_KIM = [
   "Sabah en erken kim kalkar?", "Hesabı ödemeye ilk kim davranır?", "En çok kim alışveriş yapar?",
   "Bu masada ünlü olacak kişi kim?", "En iyi fotoğraf pozunu kim verir?", "Kaybolunca yol tarifini kim bulur?",
   "En çok kim şarkı mırıldanır?", "Bu masada en rekabetçi kim?", "En çok kim espri yapar?",
-  "Bir yarışma programını kim kazanır?", "Evcil hayvanı en çok kim sever?", "Bu masada en iyi sürücü kim?",
+  "Bir yarışma programını kim kazanır?", "Evcil hayvanı en çok kim sever?", "Bu masada en güzel ses kimde?",
   "En çok kim spor yapar?", "Diziyi bir gecede kim bitirir?", "Bu masada en sakin kişi kim?",
   "Plan değiştirmeyi en çok kim sever?", "Bu masada en iyi dinleyici kim?", "Sokakta en çok kim tanınır?",
   "Bu masada en meraklı kim?", "Yeni bir hobiye en hızlı kim başlar?", "Kim en iyi doğum günü sürprizini yapar?",
